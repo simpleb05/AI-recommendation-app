@@ -134,7 +134,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fafafa',
   },
   button: {
-    backgroundColor: '#007AFF',
+    backgroundColor: '#007AFF', // 깔끔한 파란색 버튼
     paddingVertical: 16,
     borderRadius: 8,
     alignItems: 'center',
