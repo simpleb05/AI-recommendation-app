@@ -10,8 +10,8 @@ export default function WelcomeScreen({ onNavigate }) {
       </View>
 
       <View style={styles.buttonGroup}>
-        {/* 로그인 버튼을 누르면 부모 컴포넌트에 'Login' 상태를 전달 */}
-        <TouchableOpacity style={styles.loginButton} onPress={() => onNavigate('Login')}>
+        {/* 💡 [수정 포인트] App.js의 조건문과 일치하도록 'Login'에서 'SignIn'으로 수정했습니다! */}
+        <TouchableOpacity style={styles.loginButton} onPress={() => onNavigate('SignIn')}>
           <Text style={styles.loginButtonText}>로그인</Text>
         </TouchableOpacity>
 

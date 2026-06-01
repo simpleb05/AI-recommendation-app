@@ -13,29 +13,37 @@ export default function SignInScreen({ onNavigate }) {
       return;
     }
 
-    // 2. 이메일 형식 검사 (회원가입과 동일한 정규표현식)
+    // 2. 이메일 형식 검사
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       Alert.alert('오류', '올바른 이메일 형식이 아닙니다.');
       return;
     }
 
-    // 3. 로그인 성공 팝업 (추후 백엔드 데이터베이스와 연동할 부분)
-    Alert.alert(
-  '로그인 성공', 
-  `반가워요! 선호도 조사 페이지로 이동합니다.`,
-  [
-    {
-      text: '확인',
-      onPress: () => onNavigate('Preferences') // 로그인 성공 시 Preferences 화면으로 슝!
+    // 3. 💡 [시연용 분기 로직 적용] 중복 코드 정리 완료!
+    // 발표할 때 이메일 입력창에 new@test.com 을 치면 신규 회원 흐름을 보여줄 수 있습니다.
+    if (email === 'new@test.com') {
+      Alert.alert('로그인 성공', '신규 회원 시나리오로 진입하여 취향 조사 페이지로 이동합니다.', [
+        {
+          text: '확인',
+          onPress: () => onNavigate('Preferences') // 취향 조사 화면(Preferences.js)으로 이동
+        }
+      ]);
+    } else {
+      // 그 외의 아무 이메일이나 치면 기존 회원으로 간주하여 바로 메인 홈으로 이동합니다.
+      onNavigate('Home'); // 메인 홈 화면(Home.js)으로 이동
     }
-  ]
-  );
-};
+  };
 
   return (
-    <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollContainer}>
+    <KeyboardAvoidingView 
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'} 
+      style={styles.container}
+    >
+      <ScrollView 
+        contentContainerStyle={styles.scrollContainer} 
+        showsVerticalScrollIndicator={false}
+      >
         
         {/* 상단 타이틀 구역 */}
         <View style={styles.headerGroup}>
@@ -57,7 +65,6 @@ export default function SignInScreen({ onNavigate }) {
 
           <View style={styles.labelRow}>
             <Text style={styles.label}>비밀번호</Text>
-            {/* 비밀번호 보이기/숨기기 토글 버튼 */}
             <TouchableOpacity onPress={() => setSecureTextEntry(!secureTextEntry)}>
               <Text style={styles.toggleText}>{secureTextEntry ? '비밀번호 표시' : '비밀번호 숨기기'}</Text>
             </TouchableOpacity>
