@@ -1,5 +1,5 @@
-import React from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, ScrollView, Image, Alert } from 'react-native';
+import React, { useState } from 'react';
+import { StyleSheet, Text, View, TouchableOpacity, ScrollView, Image, Modal } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 const BOOKMARKED_PLACES = [
@@ -9,10 +9,8 @@ const BOOKMARKED_PLACES = [
 ];
 
 export default function MyProfileScreen({ onNavigate }) {
-  
-  const handleMenuPress = (menuName) => {
-    Alert.alert('안내', `${menuName} 기능은 추후 백엔드 연동 시 활성화됩니다.`);
-  };
+  // 이용 안내 모달 팝업의 열림/닫힘 상태 관리
+  const [isGuideVisible, setIsGuideVisible] = useState(false);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -62,7 +60,8 @@ export default function MyProfileScreen({ onNavigate }) {
             <Text style={styles.menuArrow}>➔</Text>
           </TouchableOpacity>
           
-          <TouchableOpacity style={styles.menuItem} onPress={() => handleMenuPress('이용 안내')}>
+          {/* 이용 안내 버튼 클릭 시 모달 상태를 true로 변경 */}
+          <TouchableOpacity style={styles.menuItem} onPress={() => setIsGuideVisible(true)}>
             <Text style={styles.menuItemText}>ℹ️ 이용 안내</Text>
             <Text style={styles.menuArrow}>➔</Text>
           </TouchableOpacity>
@@ -73,6 +72,45 @@ export default function MyProfileScreen({ onNavigate }) {
         </TouchableOpacity>
 
       </ScrollView>
+
+      {/* 💡 [이용 안내 커스텀 팝업 모달 구현 구역] */}
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={isGuideVisible}
+        onRequestClose={() => setIsGuideVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            
+            {/* 팝업 헤더 */}
+            <Text style={styles.modalTitle}>ℹ️ 이용 안내</Text>
+            
+            {/* 팝업 본문 (요청하신 줄바꿈과 텍스트 완벽 반영) */}
+            <ScrollView style={styles.modalScroll} showsVerticalScrollIndicator={false}>
+              <Text style={styles.modalText}>
+                본 앱은 사용자의 취향, 위치, 예산 정보를 바탕으로 상황에 맞는 놀거리 장소를 추천하는 서비스입니다.{"\n"}{"\n"}
+                AI 추천은 사용자가 선택한 선호 태그와 장소 정보를 비교하여 제공됩니다. 선호 태그를 자세히 설정할수록 더 적합한 추천 결과를 받을 수 있습니다.{"\n"}{"\n"}
+                현재 위치 기반 추천을 위해 위치 정보가 사용될 수 있으며, 위치 정보는 장소 추천 목적으로만 활용됩니다.{"\n"}{"\n"}
+                마음에 드는 장소는 즐겨찾기에 저장할 수 있고, 마이페이지에서 다시 확인할 수 있습니다.
+              </Text>
+              
+              <View style={styles.noticeBox}>
+                <Text style={styles.noticeText}>
+                  ※ 추천 결과의 운영 시간, 가격, 거리 정보는 실제와 다를 수 있으므로 방문 전 확인이 필요합니다.
+                </Text>
+              </View>
+            </ScrollView>
+
+            {/* 팝업 닫기 버튼 */}
+            <TouchableOpacity style={styles.modalCloseButton} onPress={() => setIsGuideVisible(false)}>
+              <Text style={styles.modalCloseButtonText}>확인</Text>
+            </TouchableOpacity>
+
+          </View>
+        </View>
+      </Modal>
+
     </SafeAreaView>
   );
 }
@@ -104,4 +142,15 @@ const styles = StyleSheet.create({
   menuArrow: { fontSize: 14, color: '#ccc' },
   logoutButton: { backgroundColor: '#fff', paddingVertical: 14, borderRadius: 12, alignItems: 'center', borderWidth: 1, borderColor: '#e0e0e0' },
   logoutButtonText: { color: '#ff3b30', fontSize: 15, fontWeight: 'bold' },
+
+  // 팝업 모달 스타일 내부 지정
+  modalOverlay: { flex: 1, backgroundColor: 'rgba(0, 0, 0, 0.5)', justifyContent: 'center', alignItems: 'center', padding: 24 },
+  modalContent: { width: '100%', maxHeight: '75%', backgroundColor: '#fff', borderRadius: 20, padding: 22, shadowColor: '#000', shadowOffset: { width: 0, height: 5 }, shadowOpacity: 0.15, shadowRadius: 10, elevation: 5 },
+  modalTitle: { fontSize: 18, fontWeight: 'bold', color: '#111', marginBottom: 16, textAlign: 'center' },
+  modalScroll: { marginBottom: 10 },
+  modalText: { fontSize: 14, color: '#495057', lineHeight: 22, textAlign: 'left' },
+  noticeBox: { backgroundColor: '#fff5f5', padding: 12, borderRadius: 8, marginTop: 14, borderWidth: 1, borderColor: '#ffe3e3' },
+  noticeText: { fontSize: 12, color: '#e03131', lineHeight: 18, fontWeight: '500' },
+  modalCloseButton: { backgroundColor: '#007AFF', paddingVertical: 12, borderRadius: 12, alignItems: 'center', marginTop: 10 },
+  modalCloseButtonText: { color: '#fff', fontSize: 15, fontWeight: 'bold' }
 });
