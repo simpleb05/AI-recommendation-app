@@ -1,14 +1,29 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { StyleSheet, SafeAreaView, StatusBar } from 'react-native';
-import LoginScreen from './src/pages/Login'; // 방금 만든 Login.js 불러오기
+import WelcomeScreen from './src/pages/Welcome';
+import SignInScreen from './src/pages/SignIn';
+import SignUpScreen from './src/pages/SignUp';
 
 export default function App() {
+  // 현재 어떤 화면을 보여줄지 저장하는 상태 (기본값은 'Welcome')
+  const [currentScreen, setCurrentScreen] = useState('Welcome');
+
+  // 조건부 렌더링으로 화면 제어하기
+  const renderScreen = () => {
+    if (currentScreen === 'Welcome') {
+      return <WelcomeScreen onNavigate={setCurrentScreen} />;
+    } else if (currentScreen === 'Login') {
+      return <SignInScreen onNavigate={setCurrentScreen} />;
+    } else if (currentScreen === 'SignUp') {
+      return <SignUpScreen onNavigate={setCurrentScreen} />;
+    }
+  };
+
   return (
-    // SafeAreaView는 스마트폰의 상단 노치나 하단 바에 화면이 잘리지 않게 보호해 줍니다.
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" />
-      {/* 화면에 회원가입 페이지 띄우기 */}
-      <LoginScreen />
+      {/* 현재 상태에 맞는 화면을 띄워줍니다 */}
+      {renderScreen()}
     </SafeAreaView>
   );
 }
