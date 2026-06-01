@@ -58,10 +58,11 @@ export default function MyProfileScreen({ onNavigate }) {
         </View>
 
         <View style={styles.menuGroup}>
-          <TouchableOpacity style={styles.menuItem} onPress={() => handleMenuPress('내 정보')}>
+          {/* 👤 내 정보 버튼을 누르면 EditProfile 화면으로 라우팅되도록 수정 */}
+            <TouchableOpacity style={styles.menuItem} onPress={() => onNavigate('EditProfile')}>
             <Text style={styles.menuItemText}>👤 내 정보</Text>
             <Text style={styles.menuArrow}>➔</Text>
-          </TouchableOpacity>
+            </TouchableOpacity>
           
           <TouchableOpacity style={styles.menuItem} onPress={() => handleMenuPress('이용 안내')}>
             <Text style={styles.menuItemText}>ℹ️ 이용 안내</Text>

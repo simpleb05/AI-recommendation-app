@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-
+import EditProfileScreen from './src/pages/EditProfile'; // 👈 상단에 이미 잘 생성되어 있습니다!
 import WelcomeScreen from './src/pages/Welcome';
 import SignInScreen from './src/pages/SignIn';
 import SignUpScreen from './src/pages/SignUp';
@@ -9,7 +9,7 @@ import PreferencesScreen from './src/pages/Preferences';
 import HomeScreen from './src/pages/Home';
 import TodayMoodScreen from './src/pages/TodayMoodScreen';
 import RecommendationMapScreen from './src/pages/RecommendationMap';
-import MyProfileScreen from './src/pages/MyProfile'; // 👈 [마이 프로필 추가!]
+import MyProfileScreen from './src/pages/MyProfile'; 
 
 export default function App() {
   const [currentScreen, setCurrentScreen] = useState('Welcome');
@@ -53,6 +53,11 @@ export default function App() {
         {/* 👤 [마이 프로필 화면 분기 조건식] */}
         {currentScreen === 'MyProfile' && (
           <MyProfileScreen onNavigate={handleNavigate} />
+        )}
+
+        {/* ✍️ [내 정보 수정 화면 분기 조건식 추가!] */}
+        {currentScreen === 'EditProfile' && (
+          <EditProfileScreen onNavigate={handleNavigate} />
         )}
 
       </View>
