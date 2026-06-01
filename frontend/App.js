@@ -2,14 +2,14 @@ import React, { useState } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
-// 컴포넌트 임포트 구역
 import WelcomeScreen from './src/pages/Welcome';
 import SignInScreen from './src/pages/SignIn';
 import SignUpScreen from './src/pages/SignUp';
 import PreferencesScreen from './src/pages/Preferences';
 import HomeScreen from './src/pages/Home';
 import TodayMoodScreen from './src/pages/TodayMoodScreen';
-import RecommendationMapScreen from './src/pages/RecommendationMap'; // 👈 [추가 완료!]
+import RecommendationMapScreen from './src/pages/RecommendationMap';
+import MyProfileScreen from './src/pages/MyProfile'; // 👈 [마이 프로필 추가!]
 
 export default function App() {
   const [currentScreen, setCurrentScreen] = useState('Welcome');
@@ -46,9 +46,13 @@ export default function App() {
           <TodayMoodScreen onNavigate={handleNavigate} />
         )}
 
-        {/* 🗺️ [추가 완료] 새 장소 추천받기 (지도 화면 진입 분기) */}
         {currentScreen === 'NewRecommendation' && (
           <RecommendationMapScreen onNavigate={handleNavigate} />
+        )}
+
+        {/* 👤 [마이 프로필 화면 분기 조건식] */}
+        {currentScreen === 'MyProfile' && (
+          <MyProfileScreen onNavigate={handleNavigate} />
         )}
 
       </View>

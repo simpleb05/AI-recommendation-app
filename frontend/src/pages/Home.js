@@ -43,8 +43,8 @@ export default function HomeScreen({ onNavigate }) {
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContainer} showsVerticalScrollIndicator={false}>
         
-        {/* 1. 프로필 및 오늘의 무드 설정 버튼 구역 */}
-        <TouchableOpacity style={styles.profileHeaderBox} onPress={() => onNavigate('TodayMood')}>
+        {/* 1. 마이프로필 상자 */}
+        <TouchableOpacity style={styles.profileHeaderBox} onPress={() => onNavigate('MyProfile')}>
           <View style={styles.profileRow}>
             <Image 
               source={{ uri: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80' }} 
@@ -52,16 +52,26 @@ export default function HomeScreen({ onNavigate }) {
             />
             <View style={styles.profileTextBox}>
               <Text style={styles.profileName}>사용자님 ✨</Text>
-              <Text style={styles.profileSubText}>오늘의 무드 설정하기 📝</Text> 
+              <Text style={styles.myPageLinkText}>마이페이지 보기 ➔</Text>
             </View>
-          </View>
-          
-          <View style={styles.arrowIconBox}>
-            <Text style={styles.arrowIconText}>➔</Text>
           </View>
         </TouchableOpacity>
 
-        {/* 2. 선택한 취향 태그 컨테이너 */}
+        {/* 2. 오늘 뭐하고 놀지 전반적인 활동 스타일을 정하는 배너 버튼 */}
+        <TouchableOpacity style={styles.moodBannerButton} onPress={() => onNavigate('TodayMood')}>
+          <View style={styles.moodBannerLeft}>
+            <Text style={styles.moodBannerEmoji}>🗺️</Text>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.moodBannerTitle}>오늘 뭐 하고 놀지 정하셨나요?</Text>
+              <Text style={styles.moodBannerSub}>원하는 활동 스타일을 선택하고 맞춤 코스를 추천받으세요</Text>
+            </View>
+          </View>
+          <View style={styles.moodBannerBadge}>
+            <Text style={styles.moodBadgeText}>스타일 선택</Text>
+          </View>
+        </TouchableOpacity>
+
+        {/* 3. 선택한 취향 태그 컨테이너 */}
         <View style={styles.largeTagContainer}>
           <Text style={styles.tagSectionTitle}>선택한 취향 태그</Text>
           <View style={styles.tagBadgeRow}>
@@ -72,24 +82,23 @@ export default function HomeScreen({ onNavigate }) {
           </View>
         </View>
 
-        {/* 3. 새로고침 및 새 장소 추천 기능 버튼 그룹 */}
+        {/* 4. 새로고침 및 새 장소 추천 기능 버튼 그룹 */}
         <View style={styles.controlButtonGroup}>
           <TouchableOpacity style={styles.refreshButton} onPress={handleRefresh}>
             <Text style={styles.refreshButtonText}>새로고침</Text>
           </TouchableOpacity>
           
-          {/* 💡 [수정 포인트] 밋밋하던 버튼에 숨겨진 styles를 완벽히 입혔습니다! */}
           <TouchableOpacity style={styles.navigateNewButton} onPress={() => onNavigate('NewRecommendation')}>
             <Text style={styles.navigateNewButtonText}>새로운 장소 추천받기</Text>
           </TouchableOpacity>
         </View>
 
-        {/* 4. AI 추천 타이틀 구역 */}
+        {/* 5. AI 추천 타이틀 구역 */}
         <View style={styles.titleZone}>
           <Text style={styles.mainTitle}>AI 추천 놀거리 Top 3</Text>
         </View>
 
-        {/* 5. 한눈에 들어오는 가로 배치 컴팩트 추천 리스트 */}
+        {/* 6. 한눈에 들어오는 가로 배치 컴팩트 추천 리스트 */}
         <View style={styles.listContainer}>
           {recommendationList.map((item, index) => (
             <View key={item.id} style={styles.rowCard}>
@@ -130,11 +139,6 @@ export default function HomeScreen({ onNavigate }) {
           ))}
         </View>
 
-        {/* 로그아웃 버튼 */}
-        <TouchableOpacity style={styles.logoutButton} onPress={() => onNavigate('Welcome')}>
-          <Text style={styles.logoutButtonText}>로그아웃</Text>
-        </TouchableOpacity>
-
       </ScrollView>
     </SafeAreaView>
   );
@@ -144,31 +148,31 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f8f9fa' }, 
   scrollContainer: { padding: 16, paddingBottom: 30 },
   
-  profileHeaderBox: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#fff', padding: 16, borderRadius: 14, borderWidth: 1, borderColor: '#eef0f2', marginBottom: 12, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.03, shadowRadius: 3, elevation: 1 },
+  profileHeaderBox: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#fff', padding: 12, borderRadius: 12, borderWidth: 1, borderColor: '#eef0f2', marginBottom: 10, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.02, shadowRadius: 2, elevation: 1 },
   profileRow: { flexDirection: 'row', alignItems: 'center' },
-  profileImage: { width: 50, height: 50, borderRadius: 25, marginRight: 12, backgroundColor: '#eee' },
+  profileImage: { width: 40, height: 40, borderRadius: 20, marginRight: 12, backgroundColor: '#eee' },
   profileTextBox: { justifyContent: 'center' },
-  profileName: { fontSize: 16, fontWeight: 'bold', color: '#111' },
-  profileSubText: { fontSize: 13, color: '#007AFF', fontWeight: '700', marginTop: 4 }, 
+  profileName: { fontSize: 15, fontWeight: 'bold', color: '#111' },
+  myPageLinkText: { fontSize: 12, color: '#868e96', marginTop: 2 },
   
-  arrowIconBox: { width: 30, height: 30, borderRadius: 15, backgroundColor: '#f1f3f5', justifyContent: 'center', alignItems: 'center' },
-  arrowIconText: { fontSize: 14, color: '#868e96', fontWeight: 'bold' },
+  moodBannerButton: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#E3F2FD', padding: 14, borderRadius: 14, borderWidth: 1, borderColor: '#BBDEFB', marginBottom: 16, shadowColor: '#007AFF', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 4, elevation: 2 },
+  moodBannerLeft: { flexDirection: 'row', alignItems: 'center', flex: 1, marginRight: 12 },
+  moodBannerEmoji: { fontSize: 24, marginRight: 12 },
+  moodBannerTitle: { fontSize: 15, fontWeight: 'bold', color: '#0056b3' },
+  moodBannerSub: { fontSize: 11, color: '#007AFF', marginTop: 3, flexShrink: 1, lineHeight: 15 },
+  moodBannerBadge: { backgroundColor: '#007AFF', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 20 },
+  moodBadgeText: { color: '#fff', fontSize: 11, fontWeight: 'bold' },
 
   largeTagContainer: { backgroundColor: '#fff', padding: 14, borderRadius: 14, borderWidth: 1, borderColor: '#eef0f2', marginBottom: 12 },
   tagSectionTitle: { fontSize: 13, fontWeight: '600', color: '#666', marginBottom: 8 },
   tagBadgeRow: { flexDirection: 'row', flexWrap: 'wrap' },
   largeBadge: { backgroundColor: '#E3F2FD', paddingHorizontal: 10, paddingVertical: 5, borderRadius: 6, marginRight: 4, marginBottom: 4, borderWidth: 1, borderColor: '#BBDEFB' },
   largeBadgeText: { fontSize: 12, color: '#007AFF', fontWeight: 'bold' },
-  
-  // 버튼 그룹 레이아웃
   controlButtonGroup: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 18 },
   refreshButton: { flex: 1, backgroundColor: '#fff', paddingVertical: 12, borderRadius: 10, alignItems: 'center', marginRight: 6, borderWidth: 1, borderColor: '#007AFF' },
   refreshButtonText: { color: '#007AFF', fontSize: 13, fontWeight: 'bold' },
-  
-  // 💡 아래 두 스타일이 이제 컴포넌트에 정상적으로 바인딩되었습니다!
   navigateNewButton: { flex: 1, backgroundColor: '#007AFF', paddingVertical: 12, borderRadius: 10, alignItems: 'center', marginLeft: 6 },
   navigateNewButtonText: { color: '#fff', fontSize: 13, fontWeight: 'bold' },
-  
   titleZone: { marginBottom: 10, paddingLeft: 2 },
   mainTitle: { fontSize: 19, fontWeight: 'bold', color: '#111' },
   listContainer: { marginBottom: 10 },
@@ -188,6 +192,4 @@ const styles = StyleSheet.create({
   feedbackLikeActive: { backgroundColor: '#E8F5E9', borderColor: '#4CAF50' },
   feedbackDislikeActive: { backgroundColor: '#FFEBEE', borderColor: '#F44336' },
   textActive: { color: '#111', fontWeight: 'bold' },
-  logoutButton: { marginTop: 8, backgroundColor: '#fff', paddingVertical: 12, borderRadius: 10, alignItems: 'center', borderWidth: 1, borderColor: '#e0e0e0' },
-  logoutButtonText: { color: '#888', fontSize: 13, fontWeight: '500' },
 });

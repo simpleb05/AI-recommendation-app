@@ -2,26 +2,81 @@ import React, { useState } from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, ScrollView, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-// 📍 시연용 가상 추천 장소 데이터
+// 📍 확장된 가상 추천 장소 상세 데이터
 const DUMMY_PLACES = [
-  { id: 1, name: '성수 가든 카페', category: '카페', x: 120, y: 250, distance: '350m', reason: '사용자님이 선호하는 힙한 감성의 인테리어와 조용한 분위기를 갖추고 있어요.', img: '☕' },
-  { id: 2, name: '창원 레이저 서바이벌', category: '액티비티', x: 230, y: 140, distance: '1.2km', reason: '오늘 활동적인 놀거리를 찾으시는 무드에 딱 맞는 짜릿한 실내 액티비티 스팟입니다.', img: '🎯' },
-  { id: 3, name: '모던 보드게임 카페', category: '보드게임', x: 80, y: 110, distance: '850m', reason: '비 오는 날 실내에서 연인/친구와 부담 없이 가볍게 즐기기 좋은 장소입니다.', img: '🎲' },
+  { 
+    id: 1, 
+    name: '성수 가든 카페', 
+    category: '카페', 
+    x: 120, 
+    y: 250, 
+    distance: '350m', 
+    address: '서울특별시 성동구 성수이로 12길 3',
+    isOpen: true,
+    rating: 4.8,
+    reviewCount: 342,
+    description: '도심 속 자연을 만끽할 수 있는 싱그러운 플랜테리어 베이커리 카페입니다.',
+    reason: '사용자님이 선호하는 힙한 감성의 인테리어와 조용한 분위기를 갖추고 있어요.', 
+    img: '☕' 
+  },
+  { 
+    id: 2, 
+    name: '창원 레이저 서바이벌', 
+    category: '액티비티', 
+    x: 230, 
+    y: 140, 
+    distance: '1.2km', 
+    address: '경상남도 창원시 의창구 대학로 20',
+    isOpen: true,
+    rating: 4.9,
+    reviewCount: 188,
+    description: '최첨단 레이저 장비로 안전하고 짜릿하게 즐기는 실내 서바이벌 게임장입니다.',
+    reason: '오늘 활동적인 놀거리를 찾으시는 무드에 딱 맞는 짜릿한 실내 액티비티 스팟입니다.', 
+    img: '🎯' 
+  },
+  { 
+    id: 3, 
+    name: '모던 보드게임 카페', 
+    category: '보드게임', 
+    x: 80, 
+    y: 110, 
+    distance: '850m', 
+    address: '경상남도 창원시 성산구 상남로 45',
+    isOpen: false,
+    rating: 4.5,
+    reviewCount: 95,
+    description: '500여 종의 다양한 보드게임과 프라이빗한 룸 형 좌석을 제공하는 공간입니다.',
+    reason: '비 오거나 흐린 날 실내에서 연인/친구와 부담 없이 가볍게 즐기기 좋은 장소입니다.', 
+    img: '🎲' 
+  },
 ];
 
 export default function RecommendationMapScreen({ onNavigate }) {
-  // 💡 [기획 반영] 처음에는 선택된 장소가 없도록 null로 설정합니다.
   const [selectedPlace, setSelectedPlace] = useState(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [selectedRadius, setSelectedRadius] = useState('1km');
   const [zoomLevel, setZoomLevel] = useState(1);
+  
+  // ❤️ 즐겨찾기 상태를 관리하는 객체 스테이트
+  const [favorites, setFavorites] = useState({});
 
   const handleRadiusSelect = (radius) => {
     setSelectedRadius(radius);
     setIsDropdownOpen(false);
   };
 
-  // 피드백 버튼 핸들러
+  // 즐겨찾기 토글 핸들러
+  const toggleFavorite = (placeId, placeName) => {
+    const isFav = !favorites[placeId];
+    setFavorites(prev => ({ ...prev, [placeId]: isFav }));
+    
+    if (isFav) {
+      Alert.alert('즐겨찾기 추가', `[${placeName}] 장소가 내 즐겨찾기에 저장되었습니다.`);
+    } else {
+      Alert.alert('즐겨찾기 해제', `[${placeName}] 장소가 즐겨찾기에서 삭제되었습니다.`);
+    }
+  };
+
   const handleFeedback = (type) => {
     if (type === 'like') {
       Alert.alert('피드백 반영', '이 장소가 마음에 드셨군요! AI가 다음 추천에 적극 반영합니다.');
@@ -44,13 +99,11 @@ export default function RecommendationMapScreen({ onNavigate }) {
       {/* 2. 지도 영역 */}
       <View style={styles.mapContainer}>
         <View style={[styles.virtualMap, { transform: [{ scale: zoomLevel }] }]}>
-          {/* 중심 사용자 위치 마커 (모든 글자를 <Text> 안에 완벽히 격리) */}
           <View style={styles.userMarker}>
             <View style={styles.userMarkerPulse} />
             <Text style={styles.emojiText}>🙋</Text>
           </View>
 
-          {/* 추천 장소 핀 마커들 */}
           {DUMMY_PLACES.map((place) => (
             <TouchableOpacity
               key={place.id}
@@ -69,7 +122,6 @@ export default function RecommendationMapScreen({ onNavigate }) {
           ))}
         </View>
 
-        {/* 지도 확대/축소 조작 버튼 */}
         <View style={styles.zoomControls}>
           <TouchableOpacity style={styles.zoomButton} onPress={() => setZoomLevel(Math.min(zoomLevel + 0.2, 1.6))}>
             <Text style={styles.zoomText}>+</Text>
@@ -79,7 +131,6 @@ export default function RecommendationMapScreen({ onNavigate }) {
           </TouchableOpacity>
         </View>
 
-        {/* 반경 설정 드롭다운 */}
         <View style={styles.dropdownWrapper}>
           <TouchableOpacity style={styles.dropdownMain} onPress={() => setIsDropdownOpen(!isDropdownOpen)}>
             <Text style={styles.dropdownMainText}>🎯 {selectedRadius}</Text>
@@ -104,33 +155,65 @@ export default function RecommendationMapScreen({ onNavigate }) {
         </View>
       </View>
 
-      {/* 3. 하단 놀거리 상세 정보 구역 */}
+      {/* 3. 하단 장소 상세 정보 구역 (높이를 320으로 확장) */}
       <View style={styles.detailCard}>
         {selectedPlace ? (
-          // 💡 핀을 눌렀을 때만 나타나는 상세 화면
-          <ScrollView showsVerticalScrollIndicator={false}>
+          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 10 }}>
+            
+            {/* 타이틀 및 하트 배치 탑 로우 */}
             <View style={styles.detailHeader}>
               <View style={styles.placeImageBox}>
                 <Text style={styles.placeImageText}>{selectedPlace.img}</Text>
               </View>
               <View style={styles.placeMeta}>
-                <View style={styles.badge}>
-                  <Text style={styles.badgeText}>{selectedPlace.category}</Text>
+                <View style={styles.metaTopRow}>
+                  <View style={styles.badge}>
+                    <Text style={styles.badgeText}>{selectedPlace.category}</Text>
+                  </View>
+                  {/* 영업 유무 태그 */}
+                  <View style={[styles.statusBadge, selectedPlace.isOpen ? styles.openBg : styles.closeBg]}>
+                    <Text style={[styles.statusText, selectedPlace.isOpen ? styles.openText : styles.closeText]}>
+                      {selectedPlace.isOpen ? '영업중' : '영업종료'}
+                    </Text>
+                  </View>
                 </View>
                 <Text style={styles.placeName}>{selectedPlace.name}</Text>
-                <Text style={styles.distanceText}>📍 현재 위치에서 {selectedPlace.distance}</Text>
               </View>
+              
+              {/* ❤️ 즐겨찾기 하트 버튼 */}
+              <TouchableOpacity 
+                style={styles.favoriteButton} 
+                onPress={() => toggleFavorite(selectedPlace.id, selectedPlace.name)}
+              >
+                <Text style={[styles.favoriteHeart, favorites[selectedPlace.id] && styles.activeHeart]}>
+                  {favorites[selectedPlace.id] ? '❤️' : '🤍'}
+                </Text>
+              </TouchableOpacity>
             </View>
+
+            {/* 평점 및 리뷰 수, 주소 정보 */}
+            <View style={styles.subInfoRow}>
+              <Text style={styles.ratingText}>⭐ {selectedPlace.rating}</Text>
+              <Text style={styles.reviewText}>리뷰 {selectedPlace.reviewCount}개</Text>
+              <Text style={styles.distanceText}>| {selectedPlace.distance}</Text>
+            </View>
+            
+            <Text style={styles.addressText}>🏠 {selectedPlace.address}</Text>
 
             <View style={styles.divider} />
 
-            {/* AI 추천 이유 구역 */}
+            {/* 가게에 대한 짧은 설명 */}
+            <View style={styles.descriptionSection}>
+              <Text style={styles.descContent}>{selectedPlace.description}</Text>
+            </View>
+
+            {/* ✨ AI 핵심 추천 이유 구역 */}
             <View style={styles.aiSection}>
               <Text style={styles.aiTitle}>✨ AI 핵심 추천 이유</Text>
               <Text style={styles.aiContent}>{selectedPlace.reason}</Text>
             </View>
 
-            {/* 💡 [기획 반영] 좋아요 / 별로예요 버튼 구역 */}
+            {/* 피드백 버튼 구역 */}
             <View style={styles.feedbackButtonGroup}>
               <TouchableOpacity style={[styles.feedbackButton, styles.likeButton]} onPress={() => handleFeedback('like')}>
                 <Text style={styles.likeButtonText}>👍 좋아요</Text>
@@ -141,11 +224,10 @@ export default function RecommendationMapScreen({ onNavigate }) {
             </View>
           </ScrollView>
         ) : (
-          // 💡 처음 진입해서 핀을 누르기 전 안내문구 화면
           <View style={styles.emptyContainer}>
             <Text style={styles.emptyEmoji}>🗺️</Text>
             <Text style={styles.emptyText}>지도 위의 핀(📍)을 선택하시면</Text>
-            <Text style={styles.emptyText}>AI의 맞춤형 추천 정보를 확인할 수 있습니다.</Text>
+            <Text style={styles.emptyText}>AI의 풍부한 맞춤형 추천 정보를 확인할 수 있습니다.</Text>
           </View>
         )}
       </View>
@@ -155,18 +237,13 @@ export default function RecommendationMapScreen({ onNavigate }) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f8f9fa' },
-  
-  // 헤더 스타일
   header: { height: 56, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, backgroundColor: '#fff', borderBottomWidth: 1, borderColor: '#eee' },
   backButton: { paddingVertical: 8, paddingHorizontal: 4 },
   backButtonText: { fontSize: 16, color: '#007AFF', fontWeight: '600' },
   headerTitle: { fontSize: 18, fontWeight: 'bold', color: '#111' },
 
-  // 가상 지도 스타일
   mapContainer: { flex: 1, backgroundColor: '#e5e9f0', overflow: 'hidden', position: 'relative' },
   virtualMap: { width: '100%', height: '100%', position: 'relative', backgroundColor: '#eef2f7' },
-  
-  // 마커 & 에러 방지용 텍스트 격리 스타일
   userMarker: { position: 'absolute', left: '50%', top: '50%', marginLeft: -16, marginTop: -16, width: 32, height: 32, justifyContent: 'center', alignItems: 'center', zIndex: 10 },
   userMarkerPulse: { position: 'absolute', width: 44, height: 44, borderRadius: 22, backgroundColor: 'rgba(0,122,255,0.2)', borderWidth: 1, borderColor: '#007AFF' },
   pinMarker: { position: 'absolute', alignItems: 'center', zIndex: 5 },
@@ -175,12 +252,10 @@ const styles = StyleSheet.create({
   pinLabelText: { color: '#fff', fontSize: 10, fontWeight: 'bold' },
   emojiText: { fontSize: 24, textAlign: 'center' },
 
-  // 확대/축소 버튼 스타일
   zoomControls: { position: 'absolute', bottom: 20, right: 16, gap: 8, zIndex: 20 },
   zoomButton: { width: 44, height: 44, backgroundColor: '#fff', borderRadius: 22, justifyContent: 'center', alignItems: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.15, shadowRadius: 4, elevation: 3 },
   zoomText: { fontSize: 22, fontWeight: '600', color: '#444' },
 
-  // 드롭다운 스타일
   dropdownWrapper: { position: 'absolute', top: 16, right: 16, width: 110, zIndex: 30 },
   dropdownMain: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#fff', paddingHorizontal: 12, paddingVertical: 10, borderRadius: 20, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.15, shadowRadius: 4, elevation: 3 },
   dropdownMainText: { fontSize: 14, fontWeight: 'bold', color: '#333' },
@@ -190,33 +265,56 @@ const styles = StyleSheet.create({
   dropdownItemText: { fontSize: 13, color: '#555', textAlign: 'center' },
   activeItemText: { color: '#007AFF', fontWeight: 'bold' },
 
-  // 하단 상세 정보 카드 스타일
-  detailCard: { height: 260, backgroundColor: '#fff', borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 20, shadowColor: '#000', shadowOffset: { width: 0, height: -4 }, shadowOpacity: 0.08, shadowRadius: 8, elevation: 10 },
-  detailHeader: { flexDirection: 'row', alignItems: 'center' },
-  placeImageBox: { width: 64, height: 64, backgroundColor: '#f1f3f5', borderRadius: 16, justifyContent: 'center', alignItems: 'center' },
-  placeImageText: { fontSize: 36 },
-  placeMeta: { flex: 1, marginLeft: 16 },
-  badge: { backgroundColor: 'rgba(0,122,255,0.1)', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6, alignSelf: 'flex-start', marginBottom: 4 },
-  badgeText: { color: '#007AFF', fontSize: 11, fontWeight: '700' },
-  placeName: { fontSize: 18, fontWeight: 'bold', color: '#111', marginBottom: 2 },
-  distanceText: { fontSize: 13, color: '#666' },
-  divider: { height: 1, backgroundColor: '#eee', marginVertical: 14 },
+  // 하단 카드 확장 (많은 정보 수용 목적)
+  detailCard: { height: 330, backgroundColor: '#fff', borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 20, shadowColor: '#000', shadowOffset: { width: 0, height: -4 }, shadowOpacity: 0.08, shadowRadius: 8, elevation: 10 },
+  detailHeader: { flexDirection: 'row', alignItems: 'center', position: 'relative' },
+  placeImageBox: { width: 56, height: 56, backgroundColor: '#f1f3f5', borderRadius: 14, justifyContent: 'center', alignItems: 'center' },
+  placeImageText: { fontSize: 30 },
+  placeMeta: { flex: 1, marginLeft: 14 },
+  metaTopRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 2 },
+  badge: { backgroundColor: 'rgba(0,122,255,0.1)', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 },
+  badgeText: { color: '#007AFF', fontSize: 10, fontWeight: '700' },
   
-  // AI 추천 문구 영역
-  aiSection: { backgroundColor: '#f8f9fa', padding: 12, borderRadius: 10, marginBottom: 14 },
-  aiTitle: { fontSize: 13, fontWeight: 'bold', color: '#007AFF', marginBottom: 4 },
-  aiContent: { fontSize: 13, color: '#444', lineHeight: 18 },
+  // 영업 여부 뱃지
+  statusBadge: { paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 },
+  openBg: { backgroundColor: '#E8F5E9' },
+  closeBg: { backgroundColor: '#FFEBEE' },
+  statusText: { fontSize: 10, fontWeight: '700' },
+  openText: { color: '#2E7D32' },
+  closeText: { color: '#C62828' },
+  
+  placeName: { fontSize: 18, fontWeight: 'bold', color: '#111' },
+  
+  // 즐겨찾기 하트 아이콘
+  favoriteButton: { padding: 6, position: 'absolute', right: 0, top: 4 },
+  favoriteHeart: { fontSize: 26, color: '#ccc' },
 
-  // 👍 👎 피드백 버튼 그룹 스타일
-  feedbackButtonGroup: { flexDirection: 'row', justifyContent: 'space-between', gap: 12, marginTop: 4, marginBottom: 10 },
-  feedbackButton: { flex: 1, paddingVertical: 12, borderRadius: 8, alignItems: 'center', justifyContent: 'center', borderWidth: 1 },
+  // 세부 메타 정보 줄
+  subInfoRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 8, paddingLeft: 2 },
+  ratingText: { fontSize: 13, fontWeight: 'bold', color: '#FFB300' },
+  reviewText: { fontSize: 13, color: '#666' },
+  distanceText: { fontSize: 13, color: '#888' },
+  addressText: { fontSize: 13, color: '#666', marginTop: 4, paddingLeft: 2 },
+
+  divider: { height: 1, backgroundColor: '#eee', marginVertical: 12 },
+  
+  // 짧은 설명 구역
+  descriptionSection: { marginBottom: 10, paddingHorizontal: 2 },
+  descContent: { fontSize: 14, color: '#333', lineHeight: 18, fontWeight: '500' },
+
+  // AI 추천 문구 영역
+  aiSection: { backgroundColor: '#f8f9fa', padding: 12, borderRadius: 10, marginBottom: 12 },
+  aiTitle: { fontSize: 12, fontWeight: 'bold', color: '#007AFF', marginBottom: 4 },
+  aiContent: { fontSize: 12, color: '#555', lineHeight: 18 },
+
+  feedbackButtonGroup: { flexDirection: 'row', justifyContent: 'space-between', gap: 12, marginTop: 4 },
+  feedbackButton: { flex: 1, paddingVertical: 10, borderRadius: 8, alignItems: 'center', justifyContent: 'center', borderWidth: 1 },
   likeButton: { backgroundColor: 'rgba(0,122,255,0.05)', borderColor: '#007AFF' },
   likeButtonText: { color: '#007AFF', fontSize: 14, fontWeight: 'bold' },
   dislikeButton: { backgroundColor: '#fff', borderColor: '#d32f2f' },
   dislikeButtonText: { color: '#d32f2f', fontSize: 14, fontWeight: 'bold' },
 
-  // 빈 상태(안내 문구) 디자인
   emptyContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   emptyEmoji: { fontSize: 40, marginBottom: 10 },
-  emptyText: { fontSize: 14, color: '#888', lineHeight: 20, textAlign: 'center' }
+  emptyText: { fontSize: 13, color: '#888', lineHeight: 20, textAlign: 'center' }
 });
