@@ -9,15 +9,37 @@ export default function SignUpScreen({ onNavigate }) {
   const [confirmPassword, setConfirmPassword] = useState('');
 
   const handleSignUp = () => {
+    // 1. 모든 항목 필수 입력 검사
     if (!name || !email || !password || !confirmPassword) {
       Alert.alert('알림', '모든 항목을 입력해 주세요.');
       return;
     }
+
+    // 2. 이메일 형식 검사 (@와 도메인이 올바르게 들어갔는지 확인)
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      Alert.alert('오류', '올바른 이메일 형식(example@email.com)이 아닙니다.');
+      return;
+    }
+
+    // 3. 비밀번호 일치 여부 검사
     if (password !== confirmPassword) {
       Alert.alert('오류', '비밀번호가 일치하지 않습니다.');
       return;
     }
-    Alert.alert('성공', `${name}님, 회원가입 양식이 확인되었습니다!`);
+
+    // 4. 확실한 가입 완료 팝업 노출 및 Welcome 화면으로 이동
+    Alert.alert(
+      '회원가입 완료', 
+      `${name}님의 회원가입이 성공적으로 완료되었습니다!`,
+      [
+        {
+          text: '확인',
+          // 팝업의 확인 버튼을 누르면 자동으로 첫 선택 화면으로 돌아갑니다.
+          onPress: () => onNavigate('Welcome')
+        }
+      ]
+    );
   };
 
   return (
@@ -27,18 +49,22 @@ export default function SignUpScreen({ onNavigate }) {
         <View style={styles.inputGroup}>
           <Text style={styles.label}>이름</Text>
           <TextInput style={styles.input} placeholder="이름을 입력하세요" value={name} onChangeText={setName} />
+          
           <Text style={styles.label}>이메일 주소</Text>
           <TextInput style={styles.input} placeholder="이메일을 입력하세요" keyboardType="email-address" autoCapitalize="none" value={email} onChangeText={setEmail} />
+          
           <Text style={styles.label}>비밀번호</Text>
           <TextInput style={styles.input} placeholder="비밀번호를 입력하세요" secureTextEntry={true} value={password} onChangeText={setPassword} />
+          
           <Text style={styles.label}>비밀번호 확인</Text>
           <TextInput style={styles.input} placeholder="비밀번호를 한 번 더 입력하세요" secureTextEntry={true} value={confirmPassword} onChangeText={setConfirmPassword} />
         </View>
+        
         <TouchableOpacity style={styles.button} onPress={handleSignUp}>
           <Text style={styles.buttonText}>다음</Text>
         </TouchableOpacity>
 
-        {/* 웰컴 화면으로 돌아가는 버튼 추가 */}
+        {/* 웰컴 화면으로 돌아가는 버튼 */}
         <TouchableOpacity style={styles.backButton} onPress={() => onNavigate('Welcome')}>
           <Text style={styles.backButtonText}>이전으로</Text>
         </TouchableOpacity>
