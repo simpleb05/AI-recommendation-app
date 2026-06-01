@@ -35,11 +35,10 @@ export default function MyProfileScreen({ onNavigate }) {
           <Text style={styles.userEmail}>user@changwon.ac.kr</Text>
         </View>
 
-        {/* 💡 [수정 포인트] 별(⭐) 대신 하트(❤️) 이모티콘으로 전면 교체 */}
         <View style={styles.bookmarkSection}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>❤️ 즐겨찾기 한 장소</Text>
-            <TouchableOpacity onPress={() => handleMenuPress('즐겨찾기 더보기')}>
+            <TouchableOpacity onPress={() => onNavigate('Favorites')}>
               <Text style={styles.moreText}>더보기 ➔</Text>
             </TouchableOpacity>
           </View>
@@ -58,11 +57,10 @@ export default function MyProfileScreen({ onNavigate }) {
         </View>
 
         <View style={styles.menuGroup}>
-          {/* 👤 내 정보 버튼을 누르면 EditProfile 화면으로 라우팅되도록 수정 */}
-            <TouchableOpacity style={styles.menuItem} onPress={() => onNavigate('EditProfile')}>
+          <TouchableOpacity style={styles.menuItem} onPress={() => onNavigate('EditProfile')}>
             <Text style={styles.menuItemText}>👤 내 정보</Text>
             <Text style={styles.menuArrow}>➔</Text>
-            </TouchableOpacity>
+          </TouchableOpacity>
           
           <TouchableOpacity style={styles.menuItem} onPress={() => handleMenuPress('이용 안내')}>
             <Text style={styles.menuItemText}>ℹ️ 이용 안내</Text>

@@ -10,6 +10,7 @@ import HomeScreen from './src/pages/Home';
 import TodayMoodScreen from './src/pages/TodayMoodScreen';
 import RecommendationMapScreen from './src/pages/RecommendationMap';
 import MyProfileScreen from './src/pages/MyProfile'; 
+import FavoritesScreen from './src/pages/Favorites';
 
 export default function App() {
   const [currentScreen, setCurrentScreen] = useState('Welcome');
@@ -50,14 +51,19 @@ export default function App() {
           <RecommendationMapScreen onNavigate={handleNavigate} />
         )}
 
-        {/* 👤 [마이 프로필 화면 분기 조건식] */}
+       {/* 👤 [마이 프로필 화면 분기 조건식] */}
         {currentScreen === 'MyProfile' && (
           <MyProfileScreen onNavigate={handleNavigate} />
         )}
 
-        {/* ✍️ [내 정보 수정 화면 분기 조건식 추가!] */}
+        {/* ✍️ [내 정보 수정 화면 분기 조건식] */}
         {currentScreen === 'EditProfile' && (
           <EditProfileScreen onNavigate={handleNavigate} />
+        )}
+
+        {/* ⭐ [즐겨찾기 목록 화면 분기 조건식 추가!] */}
+        {currentScreen === 'Favorites' && (
+          <FavoritesScreen onNavigate={handleNavigate} />
         )}
 
       </View>
