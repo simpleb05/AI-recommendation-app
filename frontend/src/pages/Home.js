@@ -43,8 +43,7 @@ export default function HomeScreen({ onNavigate }) {
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContainer} showsVerticalScrollIndicator={false}>
         
-        {/* 1. [디자인 대폭 수정] 프로필 및 오늘의 무드 설정 버튼 구역 */}
-        {/* 이제 이 박스 영역 전체가 클릭 가능한 버튼 역할을 하여 TodayMoodScreen으로 이동합니다 */}
+        {/* 1. 프로필 및 오늘의 무드 설정 버튼 구역 */}
         <TouchableOpacity style={styles.profileHeaderBox} onPress={() => onNavigate('TodayMood')}>
           <View style={styles.profileRow}>
             <Image 
@@ -53,12 +52,10 @@ export default function HomeScreen({ onNavigate }) {
             />
             <View style={styles.profileTextBox}>
               <Text style={styles.profileName}>사용자님 ✨</Text>
-              {/* 사용자가 터치하고 싶게끔 명확한 행동 유도 문구와 링크 컬러 적용 */}
               <Text style={styles.profileSubText}>오늘의 무드 설정하기 📝</Text> 
             </View>
           </View>
           
-          {/* 오른쪽 끝에 화살표만 깔끔하게 배치하여 버튼임을 시각적으로 증명 */}
           <View style={styles.arrowIconBox}>
             <Text style={styles.arrowIconText}>➔</Text>
           </View>
@@ -78,11 +75,12 @@ export default function HomeScreen({ onNavigate }) {
         {/* 3. 새로고침 및 새 장소 추천 기능 버튼 그룹 */}
         <View style={styles.controlButtonGroup}>
           <TouchableOpacity style={styles.refreshButton} onPress={handleRefresh}>
-            <Text style={styles.refreshButtonText}>새로고침 🔄</Text>
+            <Text style={styles.refreshButtonText}>새로고침</Text>
           </TouchableOpacity>
           
+          {/* 💡 [수정 포인트] 밋밋하던 버튼에 숨겨진 styles를 완벽히 입혔습니다! */}
           <TouchableOpacity style={styles.navigateNewButton} onPress={() => onNavigate('NewRecommendation')}>
-            <Text style={styles.navigateNewButtonText}>새 장소 추천받기 🚀</Text>
+            <Text style={styles.navigateNewButtonText}>새로운 장소 추천받기</Text>
           </TouchableOpacity>
         </View>
 
@@ -146,17 +144,13 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f8f9fa' }, 
   scrollContainer: { padding: 16, paddingBottom: 30 },
   
-  // 프로필 터치 박스 영역 (버튼 피드백 효과 반영)
   profileHeaderBox: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#fff', padding: 16, borderRadius: 14, borderWidth: 1, borderColor: '#eef0f2', marginBottom: 12, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.03, shadowRadius: 3, elevation: 1 },
   profileRow: { flexDirection: 'row', alignItems: 'center' },
   profileImage: { width: 50, height: 50, borderRadius: 25, marginRight: 12, backgroundColor: '#eee' },
   profileTextBox: { justifyContent: 'center' },
   profileName: { fontSize: 16, fontWeight: 'bold', color: '#111' },
-  
-  // 오늘의 무드 글자 자체를 메인 액센트 컬러와 밑줄 느낌으로 강조하여 클릭 유도
   profileSubText: { fontSize: 13, color: '#007AFF', fontWeight: '700', marginTop: 4 }, 
   
-  // 우측 내비게이션 화살표 스타일
   arrowIconBox: { width: 30, height: 30, borderRadius: 15, backgroundColor: '#f1f3f5', justifyContent: 'center', alignItems: 'center' },
   arrowIconText: { fontSize: 14, color: '#868e96', fontWeight: 'bold' },
 
@@ -165,11 +159,16 @@ const styles = StyleSheet.create({
   tagBadgeRow: { flexDirection: 'row', flexWrap: 'wrap' },
   largeBadge: { backgroundColor: '#E3F2FD', paddingHorizontal: 10, paddingVertical: 5, borderRadius: 6, marginRight: 4, marginBottom: 4, borderWidth: 1, borderColor: '#BBDEFB' },
   largeBadgeText: { fontSize: 12, color: '#007AFF', fontWeight: 'bold' },
+  
+  // 버튼 그룹 레이아웃
   controlButtonGroup: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 18 },
   refreshButton: { flex: 1, backgroundColor: '#fff', paddingVertical: 12, borderRadius: 10, alignItems: 'center', marginRight: 6, borderWidth: 1, borderColor: '#007AFF' },
   refreshButtonText: { color: '#007AFF', fontSize: 13, fontWeight: 'bold' },
+  
+  // 💡 아래 두 스타일이 이제 컴포넌트에 정상적으로 바인딩되었습니다!
   navigateNewButton: { flex: 1, backgroundColor: '#007AFF', paddingVertical: 12, borderRadius: 10, alignItems: 'center', marginLeft: 6 },
   navigateNewButtonText: { color: '#fff', fontSize: 13, fontWeight: 'bold' },
+  
   titleZone: { marginBottom: 10, paddingLeft: 2 },
   mainTitle: { fontSize: 19, fontWeight: 'bold', color: '#111' },
   listContainer: { marginBottom: 10 },
