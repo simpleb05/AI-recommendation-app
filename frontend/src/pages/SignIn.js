@@ -20,15 +20,10 @@ export default function SignInScreen({ onNavigate }) {
       return;
     }
 
-    // 3. 💡 [시연용 분기 로직 적용] 중복 코드 정리 완료!
-    // 발표할 때 이메일 입력창에 new@test.com 을 치면 신규 회원 흐름을 보여줄 수 있습니다.
+    // 3. 💡 [시연용 분기 로직 적용] 팝업 제거 버전
+    // 발표할 때 이메일 입력창에 new@test.com 을 치면 팝업 없이 즉시 취향 조사 페이지로 이동합니다.
     if (email === 'new@test.com') {
-      Alert.alert('로그인 성공', '신규 회원 시나리오로 진입하여 취향 조사 페이지로 이동합니다.', [
-        {
-          text: '확인',
-          onPress: () => onNavigate('Preferences') // 취향 조사 화면(Preferences.js)으로 이동
-        }
-      ]);
+      onNavigate('Preferences'); // 취향 조사 화면(Preferences.js)으로 즉시 이동
     } else {
       // 그 외의 아무 이메일이나 치면 기존 회원으로 간주하여 바로 메인 홈으로 이동합니다.
       onNavigate('Home'); // 메인 홈 화면(Home.js)으로 이동

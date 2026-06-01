@@ -46,26 +46,21 @@ export default function TodayMoodScreen({ onNavigate }) {
     })
   ).current;
 
+  // 💡 [수정] 설정 완료 핸들러 (성공 팝업 제거 버전)
   const handleSaveSettings = () => {
+    // 예외 처리: 인원 수를 선택하지 않은 경우 (필수 유효성 검사 유지)
     if (!memberCount) {
       Alert.alert('알림', '인원 수를 선택해 주세요.');
       return;
     }
+    // 예외 처리: 태그를 하나도 선택하지 않은 경우 (필수 유효성 검사 유지)
     if (selectedTags.length === 0) {
       Alert.alert('알림', '최소 한 개 이상의 태그를 선택해 주세요.');
       return;
     }
 
-    Alert.alert(
-      '오늘의 무드 설정 완료',
-      `인원: ${memberCount}\n예산: ${budget.toLocaleString()}원 이하\n선택 태그: ${selectedTags.join(', ')}\n\n이 조건으로 맞춤 추천을 갱신합니다!`,
-      [
-        {
-          text: '확인',
-          onPress: () => onNavigate('Home') 
-        }
-      ]
-    );
+    // 💡 완료 팝업창 대기 없이 즉시 홈 화면(Home)으로 네비게이션 이동합니다.
+    onNavigate('Home');
   };
 
   return (

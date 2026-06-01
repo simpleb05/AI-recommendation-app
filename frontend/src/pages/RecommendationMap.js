@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, ScrollView, Alert } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { StyleSheet, Text, View, TouchableOpacity, ScrollView, SafeAreaView } from 'react-native';
 
 // 📍 확장된 가상 추천 장소 상세 데이터
 const DUMMY_PLACES = [
@@ -57,8 +56,11 @@ export default function RecommendationMapScreen({ onNavigate }) {
   const [selectedRadius, setSelectedRadius] = useState('1km');
   const [zoomLevel, setZoomLevel] = useState(1);
   
-  // ❤️ 즐겨찾기 상태를 관리하는 객체 스테이트
+  // ❤️ 즐겨찾기 상태 관리
   const [favorites, setFavorites] = useState({});
+
+  // 💡 [수정] 홈 화면과 일치화된 개별 피드백(좋아요/별로예요) 토글 상태 객체
+  const [feedbacks, setFeedbacks] = useState({});
 
   const handleRadiusSelect = (radius) => {
     setSelectedRadius(radius);
@@ -66,23 +68,16 @@ export default function RecommendationMapScreen({ onNavigate }) {
   };
 
   // 즐겨찾기 토글 핸들러
-  const toggleFavorite = (placeId, placeName) => {
-    const isFav = !favorites[placeId];
-    setFavorites(prev => ({ ...prev, [placeId]: isFav }));
-    
-    if (isFav) {
-      Alert.alert('즐겨찾기 추가', `[${placeName}] 장소가 내 즐겨찾기에 저장되었습니다.`);
-    } else {
-      Alert.alert('즐겨찾기 해제', `[${placeName}] 장소가 즐겨찾기에서 삭제되었습니다.`);
-    }
+  const toggleFavorite = (placeId) => {
+    setFavorites(prev => ({ ...prev, [placeId]: !prev[placeId] }));
   };
 
-  const handleFeedback = (type) => {
-    if (type === 'like') {
-      Alert.alert('피드백 반영', '이 장소가 마음에 드셨군요! AI가 다음 추천에 적극 반영합니다.');
-    } else {
-      Alert.alert('피드백 반영', '불만족 처리가 완료되었습니다. 이와 유사한 장소 추천을 줄이겠습니다.');
-    }
+  // 💡 [수정] 홈 화면의 handleFeedback과 완전히 동일한 토글 로직 적용
+  const handleFeedback = (placeId, type) => {
+    setFeedbacks(prev => ({
+      ...prev,
+      [placeId]: prev[placeId] === type ? null : type
+    }));
   };
 
   return (
@@ -155,12 +150,11 @@ export default function RecommendationMapScreen({ onNavigate }) {
         </View>
       </View>
 
-      {/* 3. 하단 장소 상세 정보 구역 (높이를 320으로 확장) */}
+      {/* 3. 하단 장소 상세 정보 구역 */}
       <View style={styles.detailCard}>
         {selectedPlace ? (
           <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 10 }}>
             
-            {/* 타이틀 및 하트 배치 탑 로우 */}
             <View style={styles.detailHeader}>
               <View style={styles.placeImageBox}>
                 <Text style={styles.placeImageText}>{selectedPlace.img}</Text>
@@ -170,7 +164,6 @@ export default function RecommendationMapScreen({ onNavigate }) {
                   <View style={styles.badge}>
                     <Text style={styles.badgeText}>{selectedPlace.category}</Text>
                   </View>
-                  {/* 영업 유무 태그 */}
                   <View style={[styles.statusBadge, selectedPlace.isOpen ? styles.openBg : styles.closeBg]}>
                     <Text style={[styles.statusText, selectedPlace.isOpen ? styles.openText : styles.closeText]}>
                       {selectedPlace.isOpen ? '영업중' : '영업종료'}
@@ -180,10 +173,9 @@ export default function RecommendationMapScreen({ onNavigate }) {
                 <Text style={styles.placeName}>{selectedPlace.name}</Text>
               </View>
               
-              {/* ❤️ 즐겨찾기 하트 버튼 */}
               <TouchableOpacity 
                 style={styles.favoriteButton} 
-                onPress={() => toggleFavorite(selectedPlace.id, selectedPlace.name)}
+                onPress={() => toggleFavorite(selectedPlace.id)}
               >
                 <Text style={[styles.favoriteHeart, favorites[selectedPlace.id] && styles.activeHeart]}>
                   {favorites[selectedPlace.id] ? '❤️' : '🤍'}
@@ -191,7 +183,6 @@ export default function RecommendationMapScreen({ onNavigate }) {
               </TouchableOpacity>
             </View>
 
-            {/* 평점 및 리뷰 수, 주소 정보 */}
             <View style={styles.subInfoRow}>
               <Text style={styles.ratingText}>⭐ {selectedPlace.rating}</Text>
               <Text style={styles.reviewText}>리뷰 {selectedPlace.reviewCount}개</Text>
@@ -202,24 +193,39 @@ export default function RecommendationMapScreen({ onNavigate }) {
 
             <View style={styles.divider} />
 
-            {/* 가게에 대한 짧은 설명 */}
             <View style={styles.descriptionSection}>
               <Text style={styles.descContent}>{selectedPlace.description}</Text>
             </View>
 
-            {/* ✨ AI 핵심 추천 이유 구역 */}
             <View style={styles.aiSection}>
               <Text style={styles.aiTitle}>✨ AI 핵심 추천 이유</Text>
               <Text style={styles.aiContent}>{selectedPlace.reason}</Text>
             </View>
 
-            {/* 피드백 버튼 구역 */}
+            {/* 💡 [수정] 홈 화면 디자인/이름과 100% 동일하게 매칭된 컴포넌트 마크업 구조 */}
             <View style={styles.feedbackButtonGroup}>
-              <TouchableOpacity style={[styles.feedbackButton, styles.likeButton]} onPress={() => handleFeedback('like')}>
-                <Text style={styles.likeButtonText}>👍 좋아요</Text>
+              <TouchableOpacity 
+                style={[
+                  styles.feedbackButton, 
+                  feedbacks[selectedPlace.id] === 'like' && styles.feedbackLikeActive
+                ]} 
+                onPress={() => handleFeedback(selectedPlace.id, 'like')}
+              >
+                <Text style={[styles.feedbackButtonText, feedbacks[selectedPlace.id] === 'like' && styles.textActive]}>
+                  👍 좋음
+                </Text>
               </TouchableOpacity>
-              <TouchableOpacity style={[styles.feedbackButton, styles.dislikeButton]} onPress={() => handleFeedback('dislike')}>
-                <Text style={styles.dislikeButtonText}>👎 별로예요</Text>
+
+              <TouchableOpacity 
+                style={[
+                  styles.feedbackButton, 
+                  feedbacks[selectedPlace.id] === 'dislike' && styles.feedbackDislikeActive
+                ]} 
+                onPress={() => handleFeedback(selectedPlace.id, 'dislike')}
+              >
+                <Text style={[styles.feedbackButtonText, feedbacks[selectedPlace.id] === 'dislike' && styles.textActive]}>
+                  👎 별로
+                </Text>
               </TouchableOpacity>
             </View>
           </ScrollView>
@@ -265,7 +271,6 @@ const styles = StyleSheet.create({
   dropdownItemText: { fontSize: 13, color: '#555', textAlign: 'center' },
   activeItemText: { color: '#007AFF', fontWeight: 'bold' },
 
-  // 하단 카드 확장 (많은 정보 수용 목적)
   detailCard: { height: 330, backgroundColor: '#fff', borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 20, shadowColor: '#000', shadowOffset: { width: 0, height: -4 }, shadowOpacity: 0.08, shadowRadius: 8, elevation: 10 },
   detailHeader: { flexDirection: 'row', alignItems: 'center', position: 'relative' },
   placeImageBox: { width: 56, height: 56, backgroundColor: '#f1f3f5', borderRadius: 14, justifyContent: 'center', alignItems: 'center' },
@@ -275,7 +280,6 @@ const styles = StyleSheet.create({
   badge: { backgroundColor: 'rgba(0,122,255,0.1)', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 },
   badgeText: { color: '#007AFF', fontSize: 10, fontWeight: '700' },
   
-  // 영업 여부 뱃지
   statusBadge: { paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 },
   openBg: { backgroundColor: '#E8F5E9' },
   closeBg: { backgroundColor: '#FFEBEE' },
@@ -285,11 +289,9 @@ const styles = StyleSheet.create({
   
   placeName: { fontSize: 18, fontWeight: 'bold', color: '#111' },
   
-  // 즐겨찾기 하트 아이콘
   favoriteButton: { padding: 6, position: 'absolute', right: 0, top: 4 },
   favoriteHeart: { fontSize: 26, color: '#ccc' },
 
-  // 세부 메타 정보 줄
   subInfoRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 8, paddingLeft: 2 },
   ratingText: { fontSize: 13, fontWeight: 'bold', color: '#FFB300' },
   reviewText: { fontSize: 13, color: '#666' },
@@ -298,21 +300,45 @@ const styles = StyleSheet.create({
 
   divider: { height: 1, backgroundColor: '#eee', marginVertical: 12 },
   
-  // 짧은 설명 구역
   descriptionSection: { marginBottom: 10, paddingHorizontal: 2 },
   descContent: { fontSize: 14, color: '#333', lineHeight: 18, fontWeight: '500' },
 
-  // AI 추천 문구 영역
   aiSection: { backgroundColor: '#f8f9fa', padding: 12, borderRadius: 10, marginBottom: 12 },
   aiTitle: { fontSize: 12, fontWeight: 'bold', color: '#007AFF', marginBottom: 4 },
   aiContent: { fontSize: 12, color: '#555', lineHeight: 18 },
 
+  /* 💡 [수정] 홈 화면의 미니 피드백 스타일 및 색상을 하단 버튼 양식에 맞춰 완벽 복사 */
   feedbackButtonGroup: { flexDirection: 'row', justifyContent: 'space-between', gap: 12, marginTop: 4 },
-  feedbackButton: { flex: 1, paddingVertical: 10, borderRadius: 8, alignItems: 'center', justifyContent: 'center', borderWidth: 1 },
-  likeButton: { backgroundColor: 'rgba(0,122,255,0.05)', borderColor: '#007AFF' },
-  likeButtonText: { color: '#007AFF', fontSize: 14, fontWeight: 'bold' },
-  dislikeButton: { backgroundColor: '#fff', borderColor: '#d32f2f' },
-  dislikeButtonText: { color: '#d32f2f', fontSize: 14, fontWeight: 'bold' },
+  feedbackButton: { 
+    flex: 1, 
+    flexDirection: 'row',
+    alignItems: 'center', 
+    justifyContent: 'center',
+    backgroundColor: '#f8f9fa', 
+    paddingVertical: 10, 
+    borderRadius: 6, 
+    borderWidth: 1, 
+    borderColor: '#e9ecef'
+  },
+  feedbackButtonText: { 
+    fontSize: 13, 
+    color: '#495057', 
+    fontWeight: '500' 
+  },
+  
+  // 홈 화면 스타일 속성 클래스 완벽 동기화
+  feedbackLikeActive: { 
+    backgroundColor: '#E8F5E9', 
+    borderColor: '#4CAF50' 
+  },
+  feedbackDislikeActive: { 
+    backgroundColor: '#FFEBEE', 
+    borderColor: '#F44336' 
+  },
+  textActive: { 
+    color: '#111', 
+    fontWeight: 'bold' 
+  },
 
   emptyContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   emptyEmoji: { fontSize: 40, marginBottom: 10 },
