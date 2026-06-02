@@ -28,18 +28,34 @@ export default function SignUpScreen({ onNavigate }) {
       return;
     }
 
-    // 4. 확실한 가입 완료 팝업 노출 및 Welcome 화면으로 이동
-    Alert.alert(
-      '회원가입 완료', 
-      `${name}님의 회원가입이 성공적으로 완료되었습니다!`,
-      [
-        {
-          text: '확인',
-          // 팝업의 확인 버튼을 누르면 자동으로 첫 선택 화면으로 돌아갑니다.
-          onPress: () => onNavigate('Welcome')
-        }
-      ]
-    );
+    // 4. 백엔드 API 호출
+    try {
+      const response = await fetch('http://10.100.141.61:5000/api/auth/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: email,
+          password: password,
+          nickname: name,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        Alert.alert(
+          '회원가입 완료',
+          `${name}님의 회원가입이 성공적으로 완료되었습니다!`,
+          [{ text: '확인', onPress: () => onNavigate('Welcome') }]
+        );
+      } else {
+        Alert.alert('오류', data.message);
+      }
+    } catch (error) {
+      Alert.alert('오류', '서버 연결에 실패했습니다.');
+    }
   };
 
   return (
