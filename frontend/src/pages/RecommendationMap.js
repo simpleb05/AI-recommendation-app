@@ -1,32 +1,39 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, ScrollView, SafeAreaView, ActivityIndicator, Alert } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, ScrollView, SafeAreaView, ActivityIndicator } from 'react-native';
 import MapView, { Marker, Circle } from 'react-native-maps';
 import * as Location from 'expo-location';
 
+// 1. 거리 계산 함수 (두 지점 사이의 미터 단위 거리)
+const getDistance = (coord1, coord2) => {
+  const R = 6371e3;
+  const φ1 = (coord1.latitude * Math.PI) / 180;
+  const φ2 = (coord2.latitude * Math.PI) / 180;
+  const Δφ = ((coord2.latitude - coord1.latitude) * Math.PI) / 180;
+  const Δλ = ((coord2.longitude - coord1.longitude) * Math.PI) / 180;
+  const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) + Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+};
+
 export default function RecommendationMapScreen({ onNavigate, userToken }) {
   const [places, setPlaces] = useState([]);
+  const [filteredPlaces, setFilteredPlaces] = useState([]); // 필터링된 장소들
   const [loading, setLoading] = useState(true);
   const [selectedPlace, setSelectedPlace] = useState(null);
   const [radius, setRadius] = useState(1000);
   const [region, setRegion] = useState(null);
-  const [initialLocation, setInitialLocation] = useState(null); // 원 중심 고정용
+  const [initialLocation, setInitialLocation] = useState(null);
   const mapRef = useRef(null);
 
   useEffect(() => {
     (async () => {
       let { status } = await Location.requestForegroundPermissionsAsync();
-      if (status === 'granted') {
-        let location = await Location.getCurrentPositionAsync({});
-        const { latitude, longitude } = location.coords;
-        const startPos = { latitude, longitude };
-        
-        setInitialLocation(startPos); // 고정된 중심점 저장
-        setRegion({ ...startPos, latitudeDelta: 0.015, longitudeDelta: 0.015 });
-      } else {
-        const startPos = { latitude: 35.2278, longitude: 128.6817 };
-        setInitialLocation(startPos);
-        setRegion({ ...startPos, latitudeDelta: 0.05, longitudeDelta: 0.05 });
-      }
+      const startPos = status === 'granted' 
+        ? (await Location.getCurrentPositionAsync({})).coords 
+        : { latitude: 35.2278, longitude: 128.6817 };
+      
+      setInitialLocation({ latitude: startPos.latitude, longitude: startPos.longitude });
+      setRegion({ ...startPos, latitudeDelta: 0.015, longitudeDelta: 0.015 });
     })();
 
     const fetchPlaces = async () => {
@@ -45,20 +52,29 @@ export default function RecommendationMapScreen({ onNavigate, userToken }) {
     fetchPlaces();
   }, []);
 
-  // 지도 이동 제한 로직
+  // 2. 반경이 바뀔 때마다 장소 필터링
+  useEffect(() => {
+    if (initialLocation && places.length > 0) {
+      const filtered = places.filter((place) => {
+        const dist = getDistance(initialLocation, { 
+          latitude: parseFloat(place.latitude), 
+          longitude: parseFloat(place.longitude) 
+        });
+        return dist <= radius;
+      });
+      setFilteredPlaces(filtered);
+    }
+  }, [radius, places, initialLocation]);
+
   const onRegionChange = (newRegion) => {
     if (!initialLocation) return;
-    
-    // radius(미터)를 km로 바꾸고, 거기에 1.5배 정도 여유를 준 값을 LIMIT으로 사용
     const km = radius / 1000;
-    const LIMIT = km * 0.015; // 반경에 비례해서 이동 범위를 제한함
-
+    const LIMIT = km * 0.02;
     if (Math.abs(newRegion.latitude - initialLocation.latitude) > LIMIT ||
         Math.abs(newRegion.longitude - initialLocation.longitude) > LIMIT) {
-        
         mapRef.current?.animateToRegion({
             ...initialLocation,
-            latitudeDelta: km * 0.02, // 줌 레벨도 반경에 맞춰 부드럽게 조정
+            latitudeDelta: km * 0.02,
             longitudeDelta: km * 0.02,
         }, 500);
     }
@@ -67,9 +83,7 @@ export default function RecommendationMapScreen({ onNavigate, userToken }) {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => onNavigate('Home')}>
-          <Text style={styles.backButtonText}>◁ 홈으로</Text>
-        </TouchableOpacity>
+        <TouchableOpacity onPress={() => onNavigate('Home')}><Text style={styles.backButtonText}>◁ 홈으로</Text></TouchableOpacity>
         <Text style={styles.headerTitle}>주변 장소 추천</Text>
         <View style={{ width: 60 }} />
       </View>
@@ -87,32 +101,11 @@ export default function RecommendationMapScreen({ onNavigate, userToken }) {
       </View>
 
       <View style={styles.mapContainer}>
-        {loading || !region ? (
-          <ActivityIndicator size="large" color="#007AFF" style={{ flex: 1 }} />
-        ) : (
-          <MapView
-            ref={mapRef}
-            style={styles.map}
-            region={region}
-            onRegionChangeComplete={onRegionChange}
-            showsUserLocation={true}
-            toolbarEnabled={false}
-          >
-            {initialLocation && (
-              <Circle
-                center={initialLocation} // 고정된 중심
-                radius={radius}
-                strokeColor="rgba(0, 122, 255, 0.5)"
-                fillColor="rgba(0, 122, 255, 0.2)"
-              />
-            )}
-            {places.map((place) => (
-              <Marker
-                key={place._id}
-                coordinate={{ latitude: parseFloat(place.latitude), longitude: parseFloat(place.longitude) }}
-                title={place.name}
-                onPress={() => setSelectedPlace(place)}
-              />
+        {loading || !region ? <ActivityIndicator size="large" color="#007AFF" style={{ flex: 1 }} /> : (
+          <MapView ref={mapRef} style={styles.map} region={region} onRegionChangeComplete={onRegionChange} showsUserLocation={true} toolbarEnabled={true}>
+            {initialLocation && <Circle center={initialLocation} radius={radius} strokeColor="rgba(0, 122, 255, 0.5)" fillColor="rgba(0, 122, 255, 0.2)" />}
+            {filteredPlaces.map((place) => (
+              <Marker key={place._id} coordinate={{ latitude: parseFloat(place.latitude), longitude: parseFloat(place.longitude) }} title={place.name} onPress={() => setSelectedPlace(place)} />
             ))}
           </MapView>
         )}
@@ -123,16 +116,9 @@ export default function RecommendationMapScreen({ onNavigate, userToken }) {
           <ScrollView>
             <Text style={styles.placeName}>{selectedPlace.name} ✨</Text>
             <Text style={styles.addressText}>📍 {selectedPlace.address}</Text>
-            <Text style={styles.infoText}>💰 {selectedPlace.priceRange}</Text>
-            <Text style={styles.infoText}>⏰ {selectedPlace.openingHours}</Text>
-            <View style={styles.divider} />
-            <Text style={styles.descContent}>{selectedPlace.description}</Text>
+            <View style={styles.divider} /><Text style={styles.descContent}>{selectedPlace.description}</Text>
           </ScrollView>
-        ) : (
-          <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>핀을 선택해 상세 정보를 확인하세요.</Text>
-          </View>
-        )}
+        ) : <View style={styles.emptyContainer}><Text style={styles.emptyText}>핀을 선택해 상세 정보를 확인하세요.</Text></View>}
       </View>
     </SafeAreaView>
   );
@@ -148,7 +134,6 @@ const styles = StyleSheet.create({
   detailCard: { height: 330, backgroundColor: '#fff', borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 20, elevation: 10 },
   placeName: { fontSize: 18, fontWeight: 'bold' },
   addressText: { fontSize: 13, color: '#666' },
-  infoText: { fontSize: 13, color: '#444' },
   divider: { height: 1, backgroundColor: '#eee', marginVertical: 12 },
   descContent: { fontSize: 14, color: '#333' },
   emptyContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
