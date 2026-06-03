@@ -15,16 +15,23 @@ import FavoritesScreen from './src/pages/Favorites';
 export default function App() {
   const [currentScreen, setCurrentScreen] = useState('Welcome');
   const [isNewUser, setIsNewUser] = useState(false); 
-  // 🔑 [추가] 전역으로 유저 토큰을 관리할 상태 선언!
   const [userToken, setUserToken] = useState(null); 
+  const [userNickname, setUserNickname] = useState('사용자');
+  const [userEmail, setUserEmail] = useState('user@changwon.ac.kr');
 
   const handleNavigate = (screenName) => {
     setCurrentScreen(screenName);
   };
 
-  // 🔑 [추가] 로그인 성공 시 토큰을 App.js에 안전하게 보관하는 함수
-  const handleSignInSuccess = (token) => {
-    setUserToken(token);
+  // 🔑 [수정 완료] 이제 매개변수에서 token, nickname과 함께 'email'도 누락 없이 완벽히 받아옵니다!
+  const handleSignInSuccess = (token, nickname, email) => {
+    try {
+      if (token) setUserToken(token);
+      if (nickname) setUserNickname(nickname); 
+      if (email) setUserEmail(email); // 👈 이제 email 변수가 명확히 존재하므로 에러가 나지 않습니다!
+    } catch (error) {
+      console.error("App.js 상태 저장 중 에러:", error);
+    }
   };
 
   return (
@@ -35,13 +42,13 @@ export default function App() {
           <WelcomeScreen onNavigate={handleNavigate} />
         )}
 
-        {/* 🌟 [수정] onSignInSuccess 콜백을 연결해서 로그인 시 토큰을 가로챕니다! */}
+        {/* 🌟 SignInScreen 호출부: 인자 3개를 매칭하여 handleSignInSuccess로 안전하게 보냅니다. */}
         {currentScreen === 'SignIn' && (
           <SignInScreen 
             onNavigate={handleNavigate} 
             isNewUser={isNewUser} 
             setIsNewUser={setIsNewUser} 
-            onSignInSuccess={handleSignInSuccess} // 🔑 여기에 꽂아줍니다!
+            onSignInSuccess={(token, nickname, email) => handleSignInSuccess(token, nickname, email)}
           />
         )}
 
@@ -52,18 +59,20 @@ export default function App() {
           />
         )}
 
-        {/* 🌟 [수정] 취향 조사 화면에도 인증을 보낼 수 있게 userToken을 배달합니다! */}
+        {/* 취향 조사 화면에 userToken 배달 */}
         {currentScreen === 'Preferences' && (
           <PreferencesScreen 
             onNavigate={handleNavigate} 
-            userToken={userToken} // 🔑 PreferencesScreen에서도 이 토큰이 전달되도록 수정해야 해!
+            userToken={userToken} 
           />
         )}
 
+        {/* 메인 홈 화면에 userToken과 진짜 유저 닉네임 배달 */}
         {currentScreen === 'Home' && (
           <HomeScreen 
             onNavigate={handleNavigate} 
-            userToken={userToken} // 🔑 홈 화면으로 안전하게 배달 완료!
+            userToken={userToken} 
+            userNickname={userNickname} // 👈 홈 화면 이름 안 바뀌던 문제 해결!
           />
         )}
 
@@ -75,8 +84,13 @@ export default function App() {
           <RecommendationMapScreen onNavigate={handleNavigate} />
         )}
 
+        {/* 마이 프로필 화면에 진짜 유저 닉네임과 이메일 배달 */}
         {currentScreen === 'MyProfile' && (
-          <MyProfileScreen onNavigate={handleNavigate} />
+          <MyProfileScreen 
+            onNavigate={handleNavigate} 
+            userNickname={userNickname} // 👈 마이페이지 이름 연동!
+            userEmail={userEmail}       // 👈 마이페이지 이메일 연동!
+          />
         )}
 
         {currentScreen === 'EditProfile' && (

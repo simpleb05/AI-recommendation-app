@@ -8,7 +8,8 @@ const BOOKMARKED_PLACES = [
   { id: 3, name: '아날로그 레트로 오락실', category: '오락실', img: '🕹️' },
 ];
 
-export default function MyProfileScreen({ onNavigate }) {
+// 🔑 App.js로부터 로그인 시 킵해둔 진짜 데이터(userNickname, userEmail)를 정확히 받아옵니다.
+export default function MyProfileScreen({ onNavigate, userNickname, userEmail }) {
   // 이용 안내 모달 팝업의 열림/닫힘 상태 관리
   const [isGuideVisible, setIsGuideVisible] = useState(false);
 
@@ -29,8 +30,9 @@ export default function MyProfileScreen({ onNavigate }) {
             source={{ uri: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80' }} 
             style={styles.avatar} 
           />
-          <Text style={styles.username}>사용자님 ✨</Text>
-          <Text style={styles.userEmail}>user@changwon.ac.kr</Text>
+          {/* 🔑 [수정 완료] 복잡하고 에러 나던 fetch를 제거하고, App.js가 배달해 준 진짜 정보를 바로 렌더링합니다! */}
+          <Text style={styles.username}>{userNickname || '사용자'}님 ✨</Text>
+          <Text style={styles.userEmail}>{userEmail || 'user@changwon.ac.kr'}</Text>
         </View>
 
         <View style={styles.bookmarkSection}>
@@ -60,7 +62,6 @@ export default function MyProfileScreen({ onNavigate }) {
             <Text style={styles.menuArrow}>➔</Text>
           </TouchableOpacity>
           
-          {/* 이용 안내 버튼 클릭 시 모달 상태를 true로 변경 */}
           <TouchableOpacity style={styles.menuItem} onPress={() => setIsGuideVisible(true)}>
             <Text style={styles.menuItemText}>ℹ️ 이용 안내</Text>
             <Text style={styles.menuArrow}>➔</Text>
@@ -73,7 +74,7 @@ export default function MyProfileScreen({ onNavigate }) {
 
       </ScrollView>
 
-      {/* 💡 [이용 안내 커스텀 팝업 모달 구현 구역] */}
+      {/* 이용 안내 커스텀 팝업 모달 */}
       <Modal
         animationType="fade"
         transparent={true}
@@ -83,10 +84,8 @@ export default function MyProfileScreen({ onNavigate }) {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             
-            {/* 팝업 헤더 */}
             <Text style={styles.modalTitle}>ℹ️ 이용 안내</Text>
             
-            {/* 팝업 본문 (요청하신 줄바꿈과 텍스트 완벽 반영) */}
             <ScrollView style={styles.modalScroll} showsVerticalScrollIndicator={false}>
               <Text style={styles.modalText}>
                 본 앱은 사용자의 취향, 위치, 예산 정보를 바탕으로 상황에 맞는 놀거리 장소를 추천하는 서비스입니다.{"\n"}{"\n"}
@@ -102,7 +101,6 @@ export default function MyProfileScreen({ onNavigate }) {
               </View>
             </ScrollView>
 
-            {/* 팝업 닫기 버튼 */}
             <TouchableOpacity style={styles.modalCloseButton} onPress={() => setIsGuideVisible(false)}>
               <Text style={styles.modalCloseButtonText}>확인</Text>
             </TouchableOpacity>
@@ -143,7 +141,6 @@ const styles = StyleSheet.create({
   logoutButton: { backgroundColor: '#fff', paddingVertical: 14, borderRadius: 12, alignItems: 'center', borderWidth: 1, borderColor: '#e0e0e0' },
   logoutButtonText: { color: '#ff3b30', fontSize: 15, fontWeight: 'bold' },
 
-  // 팝업 모달 스타일 내부 지정
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0, 0, 0, 0.5)', justifyContent: 'center', alignItems: 'center', padding: 24 },
   modalContent: { width: '100%', maxHeight: '75%', backgroundColor: '#fff', borderRadius: 20, padding: 22, shadowColor: '#000', shadowOffset: { width: 0, height: 5 }, shadowOpacity: 0.15, shadowRadius: 10, elevation: 5 },
   modalTitle: { fontSize: 18, fontWeight: 'bold', color: '#111', marginBottom: 16, textAlign: 'center' },

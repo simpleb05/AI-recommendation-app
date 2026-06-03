@@ -2,11 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, ScrollView, Image, ActivityIndicator, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context'; 
 
-// 🔑 App.js로부터 로그인된 유저의 userToken을 정상적으로 받아옵니다.
-export default function HomeScreen({ onNavigate, userToken }) {
+// 🔑 App.js로부터 userToken과 함께 로그인 성공 시 킵해둔 userNickname을 정상적으로 받아옵니다.
+export default function HomeScreen({ onNavigate, userToken, userNickname }) {
   // 로딩 상태 및 에러 상태 관리
   const [isLoading, setIsLoading] = useState(true);
-  const [nickname, setNickname] = useState('사용자');
+  
+  // 🌟 [수정] App.js에서 넘겨받은 진짜 닉네임을 초기값으로 세팅하여 데이터 유실 방지!
+  const [nickname, setNickname] = useState(userNickname || '사용자');
   const [userTags, setUserTags] = useState([]);
   
   const [feedbacks, setFeedbacks] = useState({});
@@ -35,12 +37,12 @@ export default function HomeScreen({ onNavigate, userToken }) {
     }
   ]);
 
-  // 🌟 [추가] 화면이 켜질 때 백엔드에서 내 취향 정보(태그/닉네임)를 가져오는 함수
+  // 🌟 화면이 켜질 때 백엔드에서 내 취향 정보(태그)를 가져오는 함수
   const fetchUserData = async () => {
     try {
       setIsLoading(true);
 
-      // 백엔드 주소 규칙: /api/user/preference (userController의 getPreference 매핑)
+      // 백엔드 주소 규칙: /api/user/preference
       const response = await fetch('http://10.0.2.2:5000/api/user/preference', {
         method: 'GET',
         headers: {
@@ -55,14 +57,15 @@ export default function HomeScreen({ onNavigate, userToken }) {
         // 1. 유저 취향 문자열 ("조용한, 힐링, 맛집 탐방")을 콤마 기준으로 쪼개서 배열로 만듦
         if (data.preference && data.preference.moodTag) {
           const tagString = data.preference.moodTag;
-          // 공백 제거 후 배열화
           const parsedTags = tagString.split(',').map(tag => tag.trim()).filter(tag => tag !== "");
           setUserTags(parsedTags);
         }
         
-        // 💡 만약 백엔드 응답 데이터 구조에 유저 닉네임이 같이 포함되어 내려온다면 매핑 (없으면 기본값)
+        // 2. 만약 백엔드가 취향 조회 API에서도 nickname을 챙겨준다면 동적 갱신
         if (data.nickname) {
           setNickname(data.nickname);
+        } else if (data.user && data.user.nickname) {
+          setNickname(data.user.nickname);
         }
       } else {
         console.log('유저 취향 데이터 로드 실패:', data.message);
@@ -74,14 +77,21 @@ export default function HomeScreen({ onNavigate, userToken }) {
     }
   };
 
-  // 🌟 [추가] 리액트 네이티브 훅을 이용해 컴포넌트 마운트 시 자동 로드
+  // 리액트 네이티브 훅을 이용해 컴포넌트 마운트 시 자동 로드
   useEffect(() => {
     if (userToken) {
       fetchUserData();
     } else {
-      setIsLoading(false); // 토큰이 없을 경우 예외 방지용 로딩 해제
+      setIsLoading(false); 
     }
   }, [userToken]);
+
+  // 🌟 [추가] userNickname props가 변경되었을 때도 동기화되도록 안전장치 추가
+  useEffect(() => {
+    if (userNickname) {
+      setNickname(userNickname);
+    }
+  }, [userNickname]);
 
   const handleFeedback = (placeId, type) => {
     setFeedbacks(prev => ({
@@ -116,7 +126,7 @@ export default function HomeScreen({ onNavigate, userToken }) {
               style={styles.profileImage} 
             />
             <View style={styles.profileTextBox}>
-              {/* 🌟 [반영] 가짜 이름 대신 실제 내 닉네임 연동 */}
+              {/* 🌟 진짜 내 닉네임 렌더링 구역 */}
               <Text style={styles.profileName}>{nickname}님 ✨</Text>
               <Text style={styles.myPageLinkText}>마이페이지 보기 ➔</Text>
             </View>
@@ -141,7 +151,6 @@ export default function HomeScreen({ onNavigate, userToken }) {
         <View style={styles.largeTagContainer}>
           <Text style={styles.tagSectionTitle}>선택한 취향 태그</Text>
           <View style={styles.tagBadgeRow}>
-            {/* 🌟 [반영] 하드코딩 대신 진짜 DB에서 꺼내온 태그들 루프(map) 돌리기 */}
             {userTags.length > 0 ? (
               userTags.map((tag, idx) => (
                 <View key={idx} style={styles.largeBadge}>
@@ -219,7 +228,7 @@ export default function HomeScreen({ onNavigate, userToken }) {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f8f9fa' }, 
   scrollContainer: { padding: 16, paddingBottom: 30 },
-  loadingCenter: { flex: 1, justifyContent: 'center', alignItems: 'center' }, // 로딩 센터 추가
+  loadingCenter: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   
   profileHeaderBox: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#fff', padding: 12, borderRadius: 12, borderWidth: 1, borderColor: '#eef0f2', marginBottom: 10, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.02, shadowRadius: 2, elevation: 1 },
   profileRow: { flexDirection: 'row', alignItems: 'center' },

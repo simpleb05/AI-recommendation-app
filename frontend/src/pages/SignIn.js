@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { StyleSheet, Text, View, TextInput, TouchableOpacity, Alert, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
 
-// 💡 App.js로부터 넘어오는 `isNewUser`와 `setIsNewUser` props를 확실하게 받습니다!
+// 💡 App.js로부터 넘어오는 props들을 확실하게 받습니다.
 export default function SignInScreen({ onNavigate, isNewUser, setIsNewUser, onSignInSuccess }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -22,7 +22,7 @@ export default function SignInScreen({ onNavigate, isNewUser, setIsNewUser, onSi
     }
 
     try {
-      // 3. 백엔드 로그인 API 호출 (안드로이드 에뮬레이터 주소)
+      // 3. 백엔드 로그인 API 호출
       const response = await fetch('http://10.0.2.2:5000/api/auth/login', {
         method: 'POST',
         headers: {
@@ -39,12 +39,17 @@ export default function SignInScreen({ onNavigate, isNewUser, setIsNewUser, onSi
       // 4. 서버 응답 결과에 따른 처리
       if (response.ok && data.success) {
         // 로그인 성공! 
-        // 💡 중요: data.token과 data.nickname이 들어있습니다. 
         Alert.alert('성공', `${data.nickname}님, 환영합니다!`);
 
         if (onSignInSuccess) {
-          onSignInSuccess(data.token); 
+          // 🔑 [안전장치 도입] 변수명 스코프 꼬임 방지를 위해 
+          // 백엔드가 돌려준 데이터(data.email)를 최우선으로 쓰고, 없으면 현재 입력창의 텍스트 값을 안전하게 바인딩합니다.
+          const finalEmail = data?.email || data?.user?.email || email;
+          const finalNickname = data?.nickname || data?.user?.nickname || '사용자';
+
+          onSignInSuccess(data?.token, finalNickname, finalEmail);
         }
+
         if (isNewUser) {
           // 방금 회원가입 화면에서 가입 성공하고 넘어온 완전 새내기 유저라면?
           setIsNewUser(false); // 1회성 스위치이므로 다음 로그인을 위해 다시 false로 꺼줍니다!
@@ -91,6 +96,7 @@ export default function SignInScreen({ onNavigate, isNewUser, setIsNewUser, onSi
             keyboardType="email-address" 
             autoCapitalize="none" 
             value={email} 
+          
             onChangeText={setEmail} 
           />
 
