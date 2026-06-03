@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import EditProfileScreen from './src/pages/EditProfile'; // 👈 상단에 이미 잘 생성되어 있습니다!
+import EditProfileScreen from './src/pages/EditProfile'; 
 import WelcomeScreen from './src/pages/Welcome';
 import SignInScreen from './src/pages/SignIn';
 import SignUpScreen from './src/pages/SignUp';
@@ -14,6 +14,7 @@ import FavoritesScreen from './src/pages/Favorites';
 
 export default function App() {
   const [currentScreen, setCurrentScreen] = useState('Welcome');
+  const [isNewUser, setIsNewUser] = useState(false); // 💡 새 유저 판단 스위치 상태 유지
 
   const handleNavigate = (screenName) => {
     setCurrentScreen(screenName);
@@ -27,12 +28,21 @@ export default function App() {
           <WelcomeScreen onNavigate={handleNavigate} />
         )}
 
+        {/* 🌟 [수정] SignInScreen에 스위치 상태와 스위치를 끄는 함수를 전달합니다. */}
         {currentScreen === 'SignIn' && (
-          <SignInScreen onNavigate={handleNavigate} />
+          <SignInScreen 
+            onNavigate={handleNavigate} 
+            isNewUser={isNewUser} 
+            setIsNewUser={setIsNewUser} 
+          />
         )}
 
+        {/* 🌟 [수정] SignUpScreen에 스위치를 켜는 함수를 전달합니다. */}
         {currentScreen === 'SignUp' && (
-          <SignUpScreen onNavigate={handleNavigate} />
+          <SignUpScreen 
+            onNavigate={handleNavigate} 
+            setIsNewUser={setIsNewUser} 
+          />
         )}
 
         {currentScreen === 'Preferences' && (
@@ -51,7 +61,7 @@ export default function App() {
           <RecommendationMapScreen onNavigate={handleNavigate} />
         )}
 
-       {/* 👤 [마이 프로필 화면 분기 조건식] */}
+        {/* 👤 [마이 프로필 화면 분기 조건식] */}
         {currentScreen === 'MyProfile' && (
           <MyProfileScreen onNavigate={handleNavigate} />
         )}

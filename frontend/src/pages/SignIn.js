@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { StyleSheet, Text, View, TextInput, TouchableOpacity, Alert, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
 
-export default function SignInScreen({ onNavigate }) {
+// 💡 App.js로부터 넘어오는 `isNewUser`와 `setIsNewUser` props를 확실하게 받습니다!
+export default function SignInScreen({ onNavigate, isNewUser, setIsNewUser }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [secureTextEntry, setSecureTextEntry] = useState(true); // 비밀번호 숨김 상태 관리
 
-  const handleSignIn = () => {
+  const handleSignIn = async () => {
     // 1. 빈 칸 검사
     if (!email || !password) {
       Alert.alert('알림', '이메일과 비밀번호를 모두 입력해 주세요.');
@@ -20,13 +21,46 @@ export default function SignInScreen({ onNavigate }) {
       return;
     }
 
-    // 3. 💡 [시연용 분기 로직 적용] 팝업 제거 버전
-    // 발표할 때 이메일 입력창에 new@test.com 을 치면 팝업 없이 즉시 취향 조사 페이지로 이동합니다.
-    if (email === 'new@test.com') {
-      onNavigate('Preferences'); // 취향 조사 화면(Preferences.js)으로 즉시 이동
-    } else {
-      // 그 외의 아무 이메일이나 치면 기존 회원으로 간주하여 바로 메인 홈으로 이동합니다.
-      onNavigate('Home'); // 메인 홈 화면(Home.js)으로 이동
+    try {
+      // 3. 백엔드 로그인 API 호출 (안드로이드 에뮬레이터 주소)
+      const response = await fetch('http://10.0.2.2:5000/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: email,
+          password: password,
+        }),
+      });
+
+      const data = await response.json();
+
+      // 4. 서버 응답 결과에 따른 처리
+      if (response.ok && data.success) {
+        // 로그인 성공! 
+        // 💡 중요: data.token과 data.nickname이 들어있습니다. 
+        Alert.alert('성공', `${data.nickname}님, 환영합니다!`);
+
+        // 5. 💡 [방법 2: 프론트엔드 자체 스위치 기반 분기 로직 적용]
+        if (isNewUser) {
+          // 방금 회원가입 화면에서 가입 성공하고 넘어온 완전 새내기 유저라면?
+          setIsNewUser(false); // 1회성 스위치이므로 다음 로그인을 위해 다시 false로 꺼줍니다!
+          onNavigate('Preferences'); // 취향 조사 화면으로 즉시 이동
+        } else {
+          // 평소에 로그인해서 들어오는 기존 유저라면?
+          onNavigate('Home'); // 취향 조사 없이 메인 홈 화면으로 직행!
+        }
+
+      } else {
+        // 서버에서 실패 응답을 보낸 경우 (비밀번호 틀림 등)
+        Alert.alert('로그인 실패', data.message || '이메일 또는 비밀번호를 확인해 주세요.');
+      }
+
+    } catch (error) {
+      // 서버 자체가 꺼져있거나 네트워크 연결이 끊긴 경우
+      console.error('로그인 서버 통신 에러:', error);
+      Alert.alert('에러', '서버와 연결할 수 없습니다. 백엔드가 켜져 있는지 확인해 주세요.');
     }
   };
 

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { StyleSheet, Text, View, TextInput, TouchableOpacity, Alert, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
 
 // 이름을 SignUpScreen으로 변경하고, 화면 이동용인 onNavigate 함수를 받아옵니다.
-export default function SignUpScreen({ onNavigate }) {
+export default function SignUpScreen({ onNavigate, setIsNewUser }) {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -42,15 +42,19 @@ export default function SignUpScreen({ onNavigate }) {
         }),
       });
 
-      const data = await response.json();
+// 💡 SignUp.js의 43번째 줄 근처 수정하기
+const data = await response.json();
 
-      if (data.success) {
-        Alert.alert(
-          '회원가입 완료',
-          `${name}님의 회원가입이 성공적으로 완료되었습니다!`,
-          [{ text: '확인', onPress: () => onNavigate('Welcome') }]
-        );
-      } else {
+    if (data.success) {
+      // 🌟 이 한 줄을 추가해서 "새로운 유저 가입했음!" 스위치를 켜줍니다.
+      setIsNewUser(true); 
+
+      Alert.alert(
+        '회원가입 완료',
+        `${name}님의 회원가입이 성공적으로 완료되었습니다!`,
+        [{ text: '확인', onPress: () => onNavigate('SignIn') }]
+      );
+    } else {
         Alert.alert('오류', data.message);
       }
     } catch (error) {
