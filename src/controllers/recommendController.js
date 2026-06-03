@@ -25,6 +25,12 @@ const getRecommendations = async (req, res) => {
 
     let places = await Place.find(filter).limit(3);
 
+    const forceGoogle = req.query.source === "google";
+
+    if (forceGoogle) {
+      places = [];
+    }
+
     // 1) DB에 장소가 있으면 기존 백엔드 추천 사용
     if (places.length > 0) {
       const recommendations = places.map((place) => ({
