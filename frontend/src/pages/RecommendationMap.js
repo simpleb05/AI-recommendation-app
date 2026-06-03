@@ -1,15 +1,15 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, ScrollView, SafeAreaView, ActivityIndicator, Alert } from 'react-native';
-import MapView, { Marker } from 'react-native-maps';
+import MapView, { Marker, Circle } from 'react-native-maps';
 import * as Location from 'expo-location';
 
 export default function RecommendationMapScreen({ onNavigate, userToken }) {
   const [places, setPlaces] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedPlace, setSelectedPlace] = useState(null);
-  
-  // 1. region 상태 관리 (초기값 설정)
-  const [region, setRegion] = useState(null); 
+  const [radius, setRadius] = useState(1000);
+  const [region, setRegion] = useState(null);
+  const [initialLocation, setInitialLocation] = useState(null); // 원 중심 고정용
   const mapRef = useRef(null);
 
   useEffect(() => {
@@ -18,22 +18,14 @@ export default function RecommendationMapScreen({ onNavigate, userToken }) {
       if (status === 'granted') {
         let location = await Location.getCurrentPositionAsync({});
         const { latitude, longitude } = location.coords;
+        const startPos = { latitude, longitude };
         
-        // 2. 내 위치를 받으면 region 업데이트
-        setRegion({
-          latitude,
-          longitude,
-          latitudeDelta: 0.015,
-          longitudeDelta: 0.015,
-        });
+        setInitialLocation(startPos); // 고정된 중심점 저장
+        setRegion({ ...startPos, latitudeDelta: 0.015, longitudeDelta: 0.015 });
       } else {
-        // 권한 없을 시 기본 창원 위치로 설정
-        setRegion({
-          latitude: 35.2278,
-          longitude: 128.6817,
-          latitudeDelta: 0.05,
-          longitudeDelta: 0.05,
-        });
+        const startPos = { latitude: 35.2278, longitude: 128.6817 };
+        setInitialLocation(startPos);
+        setRegion({ ...startPos, latitudeDelta: 0.05, longitudeDelta: 0.05 });
       }
     })();
 
@@ -53,6 +45,25 @@ export default function RecommendationMapScreen({ onNavigate, userToken }) {
     fetchPlaces();
   }, []);
 
+  // 지도 이동 제한 로직
+  const onRegionChange = (newRegion) => {
+    if (!initialLocation) return;
+    
+    // radius(미터)를 km로 바꾸고, 거기에 1.5배 정도 여유를 준 값을 LIMIT으로 사용
+    const km = radius / 1000;
+    const LIMIT = km * 0.015; // 반경에 비례해서 이동 범위를 제한함
+
+    if (Math.abs(newRegion.latitude - initialLocation.latitude) > LIMIT ||
+        Math.abs(newRegion.longitude - initialLocation.longitude) > LIMIT) {
+        
+        mapRef.current?.animateToRegion({
+            ...initialLocation,
+            latitudeDelta: km * 0.02, // 줌 레벨도 반경에 맞춰 부드럽게 조정
+            longitudeDelta: km * 0.02,
+        }, 500);
+    }
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
@@ -63,8 +74,19 @@ export default function RecommendationMapScreen({ onNavigate, userToken }) {
         <View style={{ width: 60 }} />
       </View>
 
+      <View style={styles.radiusControl}>
+        {[1, 3, 5].map((km) => (
+          <TouchableOpacity 
+            key={km} 
+            style={[styles.radiusButton, radius === km * 1000 && styles.activeButton]} 
+            onPress={() => setRadius(km * 1000)}
+          >
+            <Text style={radius === km * 1000 ? styles.activeText : styles.inactiveText}>{km}km</Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+
       <View style={styles.mapContainer}>
-        {/* 3. region 데이터가 준비될 때까지 로딩 표시 */}
         {loading || !region ? (
           <ActivityIndicator size="large" color="#007AFF" style={{ flex: 1 }} />
         ) : (
@@ -72,17 +94,22 @@ export default function RecommendationMapScreen({ onNavigate, userToken }) {
             ref={mapRef}
             style={styles.map}
             region={region}
-            onRegionChangeComplete={(r) => setRegion(r)}
+            onRegionChangeComplete={onRegionChange}
             showsUserLocation={true}
             toolbarEnabled={false}
           >
+            {initialLocation && (
+              <Circle
+                center={initialLocation} // 고정된 중심
+                radius={radius}
+                strokeColor="rgba(0, 122, 255, 0.5)"
+                fillColor="rgba(0, 122, 255, 0.2)"
+              />
+            )}
             {places.map((place) => (
               <Marker
                 key={place._id}
-                coordinate={{ 
-                  latitude: parseFloat(place.latitude), 
-                  longitude: parseFloat(place.longitude) 
-                }}
+                coordinate={{ latitude: parseFloat(place.latitude), longitude: parseFloat(place.longitude) }}
                 title={place.name}
                 onPress={() => setSelectedPlace(place)}
               />
@@ -125,5 +152,10 @@ const styles = StyleSheet.create({
   divider: { height: 1, backgroundColor: '#eee', marginVertical: 12 },
   descContent: { fontSize: 14, color: '#333' },
   emptyContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  emptyText: { fontSize: 13, color: '#888' }
+  emptyText: { fontSize: 13, color: '#888' },
+  radiusControl: { flexDirection: 'row', justifyContent: 'center', padding: 10, backgroundColor: '#fff' },
+  radiusButton: { paddingHorizontal: 15, paddingVertical: 8, marginHorizontal: 5, borderRadius: 20, backgroundColor: '#f0f0f0' },
+  activeButton: { backgroundColor: '#007AFF' },
+  activeText: { color: '#fff', fontWeight: 'bold' },
+  inactiveText: { color: '#333' }
 });
