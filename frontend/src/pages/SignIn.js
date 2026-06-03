@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { StyleSheet, Text, View, TextInput, TouchableOpacity, Alert, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
 
 // 💡 App.js로부터 넘어오는 `isNewUser`와 `setIsNewUser` props를 확실하게 받습니다!
-export default function SignInScreen({ onNavigate, isNewUser, setIsNewUser }) {
+export default function SignInScreen({ onNavigate, isNewUser, setIsNewUser, onSignInSuccess }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [secureTextEntry, setSecureTextEntry] = useState(true); // 비밀번호 숨김 상태 관리
@@ -42,7 +42,9 @@ export default function SignInScreen({ onNavigate, isNewUser, setIsNewUser }) {
         // 💡 중요: data.token과 data.nickname이 들어있습니다. 
         Alert.alert('성공', `${data.nickname}님, 환영합니다!`);
 
-        // 5. 💡 [방법 2: 프론트엔드 자체 스위치 기반 분기 로직 적용]
+        if (onSignInSuccess) {
+          onSignInSuccess(data.token); 
+        }
         if (isNewUser) {
           // 방금 회원가입 화면에서 가입 성공하고 넘어온 완전 새내기 유저라면?
           setIsNewUser(false); // 1회성 스위치이므로 다음 로그인을 위해 다시 false로 꺼줍니다!

@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, ScrollView, Alert, SafeAreaView } from 'react-native';
 
-export default function PreferencesScreen({ onNavigate }) {
+// 💡 App.js로부터 유저 인증 토큰(userToken)을 명확하게 받아옵니다!
+export default function PreferencesScreen({ onNavigate, userToken }) {
   // 1. 분위기 태그 상태 관리 (다중 선택)
   const [selectedTags, setSelectedTags] = useState([]);
 
-  // 프로젝트 완성도를 높이기 위해 준비한 20가지 풍성한 취향 태그 목록
+  // 20가지 풍성한 취향 태그 목록
   const tags = [
     '조용한', '활기찬', '활동적인', '감성 있는', 
     '가성비', '이색적인', '힐링', '실내코스',
@@ -23,16 +24,48 @@ export default function PreferencesScreen({ onNavigate }) {
     }
   };
 
-  // 추천받기 제출 버튼 (팝업 제거 버전)
-  const handleRecommend = () => {
-    // 예외 처리: 태그를 하나도 선택하지 않은 경우 (유효성 검사는 유지)
+  // 추천받기 제출 버튼 (백엔드 실제 저장 연동)
+  const handleRecommend = async () => {
+    // 예외 처리: 태그를 하나도 선택하지 않은 경우
     if (selectedTags.length === 0) {
       Alert.alert('알림', '최소 한 개 이상의 취향 태그를 선택해 주세요.');
       return;
     }
 
-    // 💡 [수정] 완료 팝업창을 띄우지 않고 바로 홈 화면으로 네비게이션 이동합니다.
-    onNavigate('Home');
+    try {
+      // 백엔드 스키마/컨트롤러 양식에 맞춰 데이터 가공
+      // 유저가 선택한 태그들을 쉼표 문자열 형태로 묶어서 보냅니다. (예: "조용한, 힐링, 맛집 탐방")
+      const combinedMoodTags = selectedTags.join(', ');
+
+      // 💡 백엔드 취향 설정 저장 API 호출 (안드로이드 에뮬레이터 주소)
+      const response = await fetch('http://10.0.2.2:5000/api/user/preference', {
+        method: 'PUT', // userController의 updatePreference 엔드포인트 규칙에 맞춤
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${userToken}` // 🔑 중요! 인증 헤더에 로그인 토큰을 실어 보냅니다.
+        },
+        body: JSON.stringify({
+          activityType: "전체",       // 기본값 세팅
+          moodTag: combinedMoodTags, // 🌟 내가 고른 진짜 태그들이 들어감!
+          budgetRange: "상관없음",
+          groupSize: 2
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        // 성공적으로 MongoDB 디비에 저장되었다면 팝업창 없이 부드럽게 홈으로 이동!
+        onNavigate('Home');
+      } else {
+        // 토큰이 유효하지 않거나 유저를 찾지 못했을 때
+        Alert.alert('저장 실패', data.message || '취향 설정을 저장하지 못했습니다.');
+      }
+
+    } catch (error) {
+      console.error('취향 저장 서버 통신 에러:', error);
+      Alert.alert('에러', '서버와 연결할 수 없습니다. 백엔드가 켜져 있는지 확인해 주세요.');
+    }
   };
 
   return (
@@ -84,27 +117,17 @@ export default function PreferencesScreen({ onNavigate }) {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#fff' },
   innerContainer: { flex: 1, padding: 24 },
-  
-  // 헤더 타이틀 디자인
   headerZone: { marginVertical: 20, alignItems: 'center' },
   mainTitle: { fontSize: 26, fontWeight: 'bold', color: '#111', marginBottom: 8 },
   subTitle: { fontSize: 14, color: '#666', textAlign: 'center', lineHeight: 20 },
-  
-  // 태그 구역 레이아웃
   tagSection: { flex: 1, marginBottom: 24 },
   sectionTitle: { fontSize: 16, fontWeight: '600', color: '#444', marginBottom: 14 },
-  
-  // 태그들을 감싸는 독립 스크롤 박스
   tagScrollBox: { flex: 1, borderWidth: 1, borderColor: '#e8e8e8', borderRadius: 12, backgroundColor: '#fafafa', padding: 12 },
   tagGrid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' },
   tagButton: { width: '48%', backgroundColor: '#fff', borderWidth: 1, borderColor: '#e0e0e0', paddingVertical: 14, borderRadius: 8, alignItems: 'center', marginBottom: 12, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.05, shadowRadius: 1, elevation: 1 },
   selectedTagButton: { backgroundColor: '#007AFF', borderColor: '#007AFF' },
   tagButtonText: { fontSize: 15, color: '#555', fontWeight: '500' },
-  
-  // 선택되었을 때 글자 스타일
   selectedButtonText: { color: '#fff', fontWeight: 'bold' },
-  
-  // 하단 최종 제출 버튼 스타일
   submitButton: { backgroundColor: '#007AFF', paddingVertical: 16, borderRadius: 8, alignItems: 'center', marginBottom: 8 },
   submitButtonText: { color: '#fff', fontSize: 18, fontWeight: 'bold' },
 });
