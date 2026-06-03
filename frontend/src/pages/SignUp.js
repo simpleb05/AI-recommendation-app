@@ -30,7 +30,7 @@ export default function SignUpScreen({ onNavigate }) {
 
     // 4. 백엔드 API 호출
     try {
-      const response = await fetch('http://172.20.10.14:5000/api/auth/register', {
+      const response = await fetch('http://10.0.2.2:5000/api/auth/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
