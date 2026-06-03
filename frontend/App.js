@@ -14,10 +14,17 @@ import FavoritesScreen from './src/pages/Favorites';
 
 export default function App() {
   const [currentScreen, setCurrentScreen] = useState('Welcome');
-  const [isNewUser, setIsNewUser] = useState(false); // 💡 새 유저 판단 스위치 상태 유지
+  const [isNewUser, setIsNewUser] = useState(false); 
+  // 🔑 [추가] 전역으로 유저 토큰을 관리할 상태 선언!
+  const [userToken, setUserToken] = useState(null); 
 
   const handleNavigate = (screenName) => {
     setCurrentScreen(screenName);
+  };
+
+  // 🔑 [추가] 로그인 성공 시 토큰을 App.js에 안전하게 보관하는 함수
+  const handleSignInSuccess = (token) => {
+    setUserToken(token);
   };
 
   return (
@@ -28,16 +35,16 @@ export default function App() {
           <WelcomeScreen onNavigate={handleNavigate} />
         )}
 
-        {/* 🌟 [수정] SignInScreen에 스위치 상태와 스위치를 끄는 함수를 전달합니다. */}
+        {/* 🌟 [수정] onSignInSuccess 콜백을 연결해서 로그인 시 토큰을 가로챕니다! */}
         {currentScreen === 'SignIn' && (
           <SignInScreen 
             onNavigate={handleNavigate} 
             isNewUser={isNewUser} 
             setIsNewUser={setIsNewUser} 
+            onSignInSuccess={handleSignInSuccess} // 🔑 여기에 꽂아줍니다!
           />
         )}
 
-        {/* 🌟 [수정] SignUpScreen에 스위치를 켜는 함수를 전달합니다. */}
         {currentScreen === 'SignUp' && (
           <SignUpScreen 
             onNavigate={handleNavigate} 
@@ -45,12 +52,19 @@ export default function App() {
           />
         )}
 
+        {/* 🌟 [수정] 취향 조사 화면에도 인증을 보낼 수 있게 userToken을 배달합니다! */}
         {currentScreen === 'Preferences' && (
-          <PreferencesScreen onNavigate={handleNavigate} />
+          <PreferencesScreen 
+            onNavigate={handleNavigate} 
+            userToken={userToken} // 🔑 PreferencesScreen에서도 이 토큰이 전달되도록 수정해야 해!
+          />
         )}
 
         {currentScreen === 'Home' && (
-          <HomeScreen onNavigate={handleNavigate} />
+          <HomeScreen 
+            onNavigate={handleNavigate} 
+            userToken={userToken} // 🔑 홈 화면으로 안전하게 배달 완료!
+          />
         )}
 
         {currentScreen === 'TodayMood' && (
@@ -61,17 +75,14 @@ export default function App() {
           <RecommendationMapScreen onNavigate={handleNavigate} />
         )}
 
-        {/* 👤 [마이 프로필 화면 분기 조건식] */}
         {currentScreen === 'MyProfile' && (
           <MyProfileScreen onNavigate={handleNavigate} />
         )}
 
-        {/* ✍️ [내 정보 수정 화면 분기 조건식] */}
         {currentScreen === 'EditProfile' && (
           <EditProfileScreen onNavigate={handleNavigate} />
         )}
 
-        {/* ⭐ [즐겨찾기 목록 화면 분기 조건식 추가!] */}
         {currentScreen === 'Favorites' && (
           <FavoritesScreen onNavigate={handleNavigate} />
         )}

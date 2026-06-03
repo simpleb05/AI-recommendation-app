@@ -1,9 +1,16 @@
-import React, { useState } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, ScrollView, Image } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { StyleSheet, Text, View, TouchableOpacity, ScrollView, Image, ActivityIndicator, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context'; 
 
-export default function HomeScreen({ onNavigate }) {
+// 🔑 App.js로부터 로그인된 유저의 userToken을 정상적으로 받아옵니다.
+export default function HomeScreen({ onNavigate, userToken }) {
+  // 로딩 상태 및 에러 상태 관리
+  const [isLoading, setIsLoading] = useState(true);
+  const [nickname, setNickname] = useState('사용자');
+  const [userTags, setUserTags] = useState([]);
+  
   const [feedbacks, setFeedbacks] = useState({});
+  // 추천 플레이스 데이터 (우선 기존 더미를 기본값으로 유지하고 향후 AI 연동 시 활용 가능)
   const [recommendationList, setRecommendationList] = useState([
     {
       id: 1,
@@ -28,6 +35,54 @@ export default function HomeScreen({ onNavigate }) {
     }
   ]);
 
+  // 🌟 [추가] 화면이 켜질 때 백엔드에서 내 취향 정보(태그/닉네임)를 가져오는 함수
+  const fetchUserData = async () => {
+    try {
+      setIsLoading(true);
+
+      // 백엔드 주소 규칙: /api/user/preference (userController의 getPreference 매핑)
+      const response = await fetch('http://10.0.2.2:5000/api/user/preference', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${userToken}` // 🔑 인증 토큰 실어 나르기!
+        }
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        // 1. 유저 취향 문자열 ("조용한, 힐링, 맛집 탐방")을 콤마 기준으로 쪼개서 배열로 만듦
+        if (data.preference && data.preference.moodTag) {
+          const tagString = data.preference.moodTag;
+          // 공백 제거 후 배열화
+          const parsedTags = tagString.split(',').map(tag => tag.trim()).filter(tag => tag !== "");
+          setUserTags(parsedTags);
+        }
+        
+        // 💡 만약 백엔드 응답 데이터 구조에 유저 닉네임이 같이 포함되어 내려온다면 매핑 (없으면 기본값)
+        if (data.nickname) {
+          setNickname(data.nickname);
+        }
+      } else {
+        console.log('유저 취향 데이터 로드 실패:', data.message);
+      }
+    } catch (error) {
+      console.error('홈 화면 유저 데이터 통신 에러:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // 🌟 [추가] 리액트 네이티브 훅을 이용해 컴포넌트 마운트 시 자동 로드
+  useEffect(() => {
+    if (userToken) {
+      fetchUserData();
+    } else {
+      setIsLoading(false); // 토큰이 없을 경우 예외 방지용 로딩 해제
+    }
+  }, [userToken]);
+
   const handleFeedback = (placeId, type) => {
     setFeedbacks(prev => ({
       ...prev,
@@ -38,6 +93,16 @@ export default function HomeScreen({ onNavigate }) {
   const handleRefresh = () => {
     setRecommendationList(prev => [...prev].reverse());
   };
+
+  // 서버 통신 중일 때 보여줄 로딩 뷰
+  if (isLoading) {
+    return (
+      <SafeAreaView style={[styles.container, styles.loadingCenter]}>
+        <ActivityIndicator size="large" color="#007AFF" />
+        <Text style={{ marginTop: 10, color: '#666' }}>내 취향 정보 불러오는 중...</Text>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -51,13 +116,14 @@ export default function HomeScreen({ onNavigate }) {
               style={styles.profileImage} 
             />
             <View style={styles.profileTextBox}>
-              <Text style={styles.profileName}>사용자님 ✨</Text>
+              {/* 🌟 [반영] 가짜 이름 대신 실제 내 닉네임 연동 */}
+              <Text style={styles.profileName}>{nickname}님 ✨</Text>
               <Text style={styles.myPageLinkText}>마이페이지 보기 ➔</Text>
             </View>
           </View>
         </TouchableOpacity>
 
-        {/* 2. 오늘 뭐하고 놀지 전반적인 활동 스타일을 정하는 배너 버튼 */}
+        {/* 2. 배너 버튼 */}
         <TouchableOpacity style={styles.moodBannerButton} onPress={() => onNavigate('TodayMood')}>
           <View style={styles.moodBannerLeft}>
             <Text style={styles.moodBannerEmoji}>🗺️</Text>
@@ -75,14 +141,20 @@ export default function HomeScreen({ onNavigate }) {
         <View style={styles.largeTagContainer}>
           <Text style={styles.tagSectionTitle}>선택한 취향 태그</Text>
           <View style={styles.tagBadgeRow}>
-            <View style={styles.largeBadge}><Text style={styles.largeBadgeText}>#감성 있는</Text></View>
-            <View style={styles.largeBadge}><Text style={styles.largeBadgeText}>#조용한</Text></View>
-            <View style={styles.largeBadge}><Text style={styles.largeBadgeText}>#힐링</Text></View>
-            <View style={styles.largeBadge}><Text style={styles.largeBadgeText}>#실내코스</Text></View>
+            {/* 🌟 [반영] 하드코딩 대신 진짜 DB에서 꺼내온 태그들 루프(map) 돌리기 */}
+            {userTags.length > 0 ? (
+              userTags.map((tag, idx) => (
+                <View key={idx} style={styles.largeBadge}>
+                  <Text style={styles.largeBadgeText}>#{tag}</Text>
+                </View>
+              ))
+            ) : (
+              <Text style={{ fontSize: 12, color: '#999', paddingVertical: 4 }}>아직 등록된 취향 태그가 없습니다.</Text>
+            )}
           </View>
         </View>
 
-        {/* 4. 새로고침 및 새 장소 추천 기능 버튼 그룹 */}
+        {/* 4. 컨트롤 버튼 그룹 */}
         <View style={styles.controlButtonGroup}>
           <TouchableOpacity style={styles.refreshButton} onPress={handleRefresh}>
             <Text style={styles.refreshButtonText}>새로고침</Text>
@@ -98,7 +170,7 @@ export default function HomeScreen({ onNavigate }) {
           <Text style={styles.mainTitle}>AI 추천 놀거리 Top 3</Text>
         </View>
 
-        {/* 6. 한눈에 들어오는 가로 배치 컴팩트 추천 리스트 */}
+        {/* 6. 가로 배치 컴팩트 추천 리스트 */}
         <View style={styles.listContainer}>
           {recommendationList.map((item, index) => (
             <View key={item.id} style={styles.rowCard}>
@@ -147,6 +219,7 @@ export default function HomeScreen({ onNavigate }) {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f8f9fa' }, 
   scrollContainer: { padding: 16, paddingBottom: 30 },
+  loadingCenter: { flex: 1, justifyContent: 'center', alignItems: 'center' }, // 로딩 센터 추가
   
   profileHeaderBox: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#fff', padding: 12, borderRadius: 12, borderWidth: 1, borderColor: '#eef0f2', marginBottom: 10, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.02, shadowRadius: 2, elevation: 1 },
   profileRow: { flexDirection: 'row', alignItems: 'center' },
