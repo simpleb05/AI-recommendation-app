@@ -8,12 +8,12 @@ export default function SignUpScreen({ onNavigate }) {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
 
-  const handleSignUp = () => {
-    // 1. 모든 항목 필수 입력 검사
-    if (!name || !email || !password || !confirmPassword) {
-      Alert.alert('알림', '모든 항목을 입력해 주세요.');
-      return;
-    }
+  const handleSignUp = async () => {
+  // 1. 모든 항목 필수 입력 검사
+  if (!name || !email || !password || !confirmPassword) {
+    Alert.alert('알림', '모든 항목을 입력해 주세요.');
+    return;
+  }
 
     // 2. 이메일 형식 검사 (@와 도메인이 올바르게 들어갔는지 확인)
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -30,7 +30,7 @@ export default function SignUpScreen({ onNavigate }) {
 
     // 4. 백엔드 API 호출
     try {
-      const response = await fetch('http://10.100.141.61:5000/api/auth/register', {
+      const response = await fetch('http://172.20.10.14:5000/api/auth/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
