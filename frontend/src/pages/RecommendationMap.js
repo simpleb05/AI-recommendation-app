@@ -23,6 +23,8 @@ export default function RecommendationMapScreen({ onNavigate, userToken }) {
   const [radius, setRadius] = useState(1000);
   const [region, setRegion] = useState(null);
   const [initialLocation, setInitialLocation] = useState(null);
+  const [userFavorites, setUserFavorites] = useState([]); // 내 즐겨찾기 목록 ID들
+  const [isFavorite, setIsFavorite] = useState(false); // 현재 선택된 장소의 하트 상태
   const mapRef = useRef(null);
 
   useEffect(() => {
@@ -54,6 +56,28 @@ export default function RecommendationMapScreen({ onNavigate, userToken }) {
         setLoading(false);
       }
     };
+    
+    const fetchFavorites = async () => {
+      try {
+        const response = await fetch('http://10.0.2.2:5000/api/favorites', {
+          headers: { 'Authorization': `Bearer ${userToken}` }
+        });
+        const data = await response.json();
+        console.log("즐겨찾기 목록:", data);
+
+       if (data.success) {
+      // 🌟 핵심: 객체 안의 placeId 값을 추출하여 배열로 저장
+      // placeId가 객체라면 placeId._id를, 문자열이라면 placeId를 사용하세요
+      const favoriteIds = data.favorites.map(fav => 
+        typeof fav.placeId === 'object' ? fav.placeId._id : fav.placeId
+      );
+      setUserFavorites(favoriteIds); 
+      }
+      } catch (error) {
+        console.error("즐겨찾기 목록 로드 실패:", error);
+      }
+    };
+    fetchFavorites();
     fetchPlaces();
   }, []);
 
@@ -82,6 +106,51 @@ export default function RecommendationMapScreen({ onNavigate, userToken }) {
             latitudeDelta: km * 0.02,
             longitudeDelta: km * 0.02,
         }, 500);
+    }
+  };
+
+  const toggleFavorite = async (placeId) => {
+    const isCurrentlyFavorite = userFavorites.includes(placeId);
+    const method = isCurrentlyFavorite ? 'DELETE' : 'POST';
+    
+    // DELETE일 때는 URL 뒤에 /ID를 붙이고, POST일 때는 기본 경로 사용
+    const url = isCurrentlyFavorite 
+      ? `http://10.0.2.2:5000/api/favorites/${placeId}` 
+      : `http://10.0.2.2:5000/api/favorites`;
+
+    try {
+      const response = await fetch(url, {
+        method: method,
+        headers: { 
+          'Authorization': `Bearer ${userToken}`,
+          'Content-Type': 'application/json' 
+        },
+        body: isCurrentlyFavorite ? null : JSON.stringify({ placeId })
+      });
+
+      // 서버 응답이 204(삭제 성공)이거나 JSON이 아닐 경우를 대비해 텍스트 확인
+      const text = await response.text();
+      let data;
+      try {
+        data = JSON.parse(text); // 여기서 파싱
+      } catch (e) {
+        // 서버가 JSON을 안 보내줬을 경우 (성공 메시지만 온 경우 등)
+        data = { success: true }; 
+      }
+      
+      if (data.success) {
+        if (isCurrentlyFavorite) {
+          setUserFavorites(prev => prev.filter(id => id !== placeId));
+          alert("즐겨찾기에서 제거되었습니다.");
+        } else {
+          setUserFavorites(prev => [...prev, placeId]);
+          alert("즐겨찾기에 추가되었습니다.");
+        }
+      } else {
+        alert(data.message || "오류 발생");
+      }
+    } catch (error) {
+      console.error("즐겨찾기 토글 실패:", error);
     }
   };
 
@@ -142,17 +211,32 @@ export default function RecommendationMapScreen({ onNavigate, userToken }) {
       ))}
     </MapView>
   )}
-</View>
 
-      <View style={styles.detailCard}>
-        {selectedPlace ? (
-          <ScrollView>
-            <Text style={styles.placeName}>{selectedPlace.name} ✨</Text>
-            <Text style={styles.addressText}>📍 {selectedPlace.address}</Text>
-            <View style={styles.divider} /><Text style={styles.descContent}>{selectedPlace.description}</Text>
-          </ScrollView>
-        ) : <View style={styles.emptyContainer}><Text style={styles.emptyText}>핀을 선택해 상세 정보를 확인하세요.</Text></View>}
+
+</View>
+     <View style={styles.detailCard}>
+  {selectedPlace ? (
+    <ScrollView>
+      {/* 🌟 이름과 하트를 묶어주는 헤더 영역 */}
+      <View style={styles.detailHeader}>
+        <Text style={styles.placeName}>{selectedPlace.name} ✨</Text>
+        <TouchableOpacity onPress={() => toggleFavorite(selectedPlace._id)}>
+          <Text style={{ fontSize: 28 }}>
+            {userFavorites.includes(selectedPlace._id) ? '❤️' : '🤍'}
+          </Text>
+        </TouchableOpacity>
       </View>
+
+      <Text style={styles.addressText}>📍 {selectedPlace.address}</Text>
+      <View style={styles.divider} />
+      <Text style={styles.descContent}>{selectedPlace.description}</Text>
+    </ScrollView>
+  ) : (
+    <View style={styles.emptyContainer}>
+      <Text style={styles.emptyText}>핀을 선택해 상세 정보를 확인하세요.</Text>
+    </View>
+  )}
+</View>
     </SafeAreaView>
   );
 }
@@ -175,5 +259,17 @@ const styles = StyleSheet.create({
   radiusButton: { paddingHorizontal: 15, paddingVertical: 8, marginHorizontal: 5, borderRadius: 20, backgroundColor: '#f0f0f0' },
   activeButton: { backgroundColor: '#007AFF' },
   activeText: { color: '#fff', fontWeight: 'bold' },
-  inactiveText: { color: '#333' }
+  inactiveText: { color: '#333' },
+  detailHeader: {
+    flexDirection: 'row',            // 가로 정렬
+    justifyContent: 'space-between', // 이름은 왼쪽, 하트는 오른쪽 끝으로 배치
+    alignItems: 'center',            // 하트와 텍스트의 높이를 중앙으로 맞춤
+    marginBottom: 8,
+  },
+  placeName: {
+    fontSize: 20,                    // 조금 더 키웠습니다 (취향껏 조절하세요)
+    fontWeight: 'bold',
+    flex: 1,                         // 이름이 길어질 경우를 대비해 공간 점유
+    marginRight: 10,                 // 이름과 하트 사이의 간격
+  },
 });
