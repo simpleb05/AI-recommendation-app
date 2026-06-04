@@ -9,19 +9,19 @@ const AVATAR_OPTIONS = [
   'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
 ];
 
-export default function EditProfileScreen({ onNavigate }) {
-  const [username, setUsername] = useState('사용자님');
+export default function EditProfileScreen({ onNavigate, userToken, userNickname, setUserNickname }) {
+  const [username, setUsername] = useState(userNickname || '사용자님');
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [selectedAvatar, setSelectedAvatar] = useState(AVATAR_OPTIONS[0]);
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!username.trim()) {
       Alert.alert('경고', '이름을 입력해 주세요.');
       return;
     }
-    
+
     if (currentPassword || newPassword || confirmPassword) {
       if (!currentPassword) {
         Alert.alert('경고', '현재 비밀번호를 입력해야 변경이 가능합니다.');
@@ -33,9 +33,49 @@ export default function EditProfileScreen({ onNavigate }) {
       }
     }
 
-    Alert.alert('성공', '회원 정보가 성공적으로 수정되었습니다.', [
-      { text: '확인', onPress: () => onNavigate('MyProfile') }
-    ]);
+    try {
+      // 닉네임 변경
+      if (username !== userNickname) {
+        const nicknameRes = await fetch('http://10.0.2.2:5000/api/user/nickname', {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${userToken}`,
+          },
+          body: JSON.stringify({ nickname: username }),
+        });
+        const nicknameData = await nicknameRes.json();
+        if (!nicknameData.success) {
+          Alert.alert('오류', nicknameData.message);
+          return;
+        }
+        setUserNickname(username);
+      }
+
+      // 비밀번호 변경
+      if (currentPassword && newPassword) {
+        const passwordRes = await fetch('http://10.0.2.2:5000/api/user/password', {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${userToken}`,
+          },
+          body: JSON.stringify({ currentPassword, newPassword }),
+        });
+        const passwordData = await passwordRes.json();
+        if (!passwordData.success) {
+          Alert.alert('오류', passwordData.message);
+          return;
+        }
+      }
+
+      Alert.alert('성공', '회원 정보가 성공적으로 수정되었습니다.', [
+        { text: '확인', onPress: () => onNavigate('MyProfile') }
+      ]);
+
+    } catch (error) {
+      Alert.alert('오류', '서버 연결에 실패했습니다.');
+    }
   };
 
   return (

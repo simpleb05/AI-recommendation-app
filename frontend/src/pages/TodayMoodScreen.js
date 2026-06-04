@@ -2,7 +2,7 @@ import React, { useState, useRef } from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, ScrollView, Alert, PanResponder } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context'; // 경고 해결용
 
-export default function TodayMoodScreen({ onNavigate, userToken}) {
+export default function TodayMoodScreen({ onNavigate, userToken }) {
   const [memberCount, setMemberCount] = useState('');
   const [budget, setBudget] = useState(50000); 
   const sliderWidth = useRef(0); 
@@ -48,45 +48,39 @@ export default function TodayMoodScreen({ onNavigate, userToken}) {
 
   // 💡 [수정] 설정 완료 핸들러 (성공 팝업 제거 버전)
   const handleSaveSettings = async () => {
-    // 예외 처리: 인원 수를 선택하지 않은 경우 (필수 유효성 검사 유지)
     if (!memberCount) {
       Alert.alert('알림', '인원 수를 선택해 주세요.');
       return;
     }
-    // 예외 처리: 태그를 하나도 선택하지 않은 경우 (필수 유효성 검사 유지)
     if (selectedTags.length === 0) {
       Alert.alert('알림', '최소 한 개 이상의 태그를 선택해 주세요.');
       return;
     }
 
     try {
-    // 1. 태그를 콤마로 구분된 문자열로 변환
-    const moodTag = selectedTags.join(', ');
+      const response = await fetch('http://10.0.2.2:5000/api/user/preference', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${userToken}`,
+        },
+        body: JSON.stringify({
+          groupSize: memberCount,
+          budgetRange: `${budget.toLocaleString()}원 이하`,
+          moodTag: selectedTags.join(', '),
+          activityType: '',
+        }),
+      });
 
-    // 2. 서버로 POST 요청 (태그 저장)
-    const response = await fetch('http://10.0.2.2:5000/api/user/preference', {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${userToken}` // App.js에서 넘겨받은 토큰 사용
-      },
-      body: JSON.stringify({ 
-        memberCount, // 추가된 정보
-        budget,      // 추가된 정보
-        moodTag      // 핵심 취향 정보
-      })
-    });
+      const data = await response.json();
 
-    const data = await response.json();
-    if (data.success) {
-      // 3. 성공 시 홈으로 이동 (홈에서는 새로고침이 발생함)
-      onNavigate('Home');
-    } else {
-      Alert.alert('저장 실패', data.message || '다시 시도해 주세요.');
-    }
+      if (data.success) {
+        onNavigate('Home');
+      } else {
+        Alert.alert('오류', data.message);
+      }
     } catch (error) {
-      console.error('설정 저장 에러:', error);
-      Alert.alert('에러', '서버와의 통신에 실패했습니다.');
+      Alert.alert('오류', '서버 연결에 실패했습니다.');
     }
   };
 
