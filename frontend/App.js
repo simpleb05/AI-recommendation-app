@@ -77,7 +77,9 @@ export default function App() {
         )}
 
         {currentScreen === 'TodayMood' && (
-          <TodayMoodScreen onNavigate={handleNavigate} />
+          <TodayMoodScreen onNavigate={handleNavigate} 
+          userToken={userToken}
+          />
         )}
 
         {currentScreen === 'NewRecommendation' && (

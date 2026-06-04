@@ -2,7 +2,7 @@ import React, { useState, useRef } from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, ScrollView, Alert, PanResponder } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context'; // 경고 해결용
 
-export default function TodayMoodScreen({ onNavigate }) {
+export default function TodayMoodScreen({ onNavigate, userToken}) {
   const [memberCount, setMemberCount] = useState('');
   const [budget, setBudget] = useState(50000); 
   const sliderWidth = useRef(0); 
@@ -47,7 +47,7 @@ export default function TodayMoodScreen({ onNavigate }) {
   ).current;
 
   // 💡 [수정] 설정 완료 핸들러 (성공 팝업 제거 버전)
-  const handleSaveSettings = () => {
+  const handleSaveSettings = async () => {
     // 예외 처리: 인원 수를 선택하지 않은 경우 (필수 유효성 검사 유지)
     if (!memberCount) {
       Alert.alert('알림', '인원 수를 선택해 주세요.');
@@ -59,8 +59,35 @@ export default function TodayMoodScreen({ onNavigate }) {
       return;
     }
 
-    // 💡 완료 팝업창 대기 없이 즉시 홈 화면(Home)으로 네비게이션 이동합니다.
-    onNavigate('Home');
+    try {
+    // 1. 태그를 콤마로 구분된 문자열로 변환
+    const moodTag = selectedTags.join(', ');
+
+    // 2. 서버로 POST 요청 (태그 저장)
+    const response = await fetch('http://10.0.2.2:5000/api/user/preference', {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${userToken}` // App.js에서 넘겨받은 토큰 사용
+      },
+      body: JSON.stringify({ 
+        memberCount, // 추가된 정보
+        budget,      // 추가된 정보
+        moodTag      // 핵심 취향 정보
+      })
+    });
+
+    const data = await response.json();
+    if (data.success) {
+      // 3. 성공 시 홈으로 이동 (홈에서는 새로고침이 발생함)
+      onNavigate('Home');
+    } else {
+      Alert.alert('저장 실패', data.message || '다시 시도해 주세요.');
+    }
+    } catch (error) {
+      console.error('설정 저장 에러:', error);
+      Alert.alert('에러', '서버와의 통신에 실패했습니다.');
+    }
   };
 
   return (

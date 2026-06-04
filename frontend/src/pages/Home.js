@@ -77,14 +77,11 @@ export default function HomeScreen({ onNavigate, userToken, userNickname }) {
     }
   };
 
-  // 리액트 네이티브 훅을 이용해 컴포넌트 마운트 시 자동 로드
   useEffect(() => {
-    if (userToken) {
-      fetchUserData();
-    } else {
-      setIsLoading(false); 
-    }
-  }, [userToken]);
+  if (userToken) {
+    fetchUserData();
+  }
+}, [userToken]);
 
   // 🌟 [추가] userNickname props가 변경되었을 때도 동기화되도록 안전장치 추가
   useEffect(() => {
