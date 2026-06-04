@@ -23,6 +23,9 @@ app.use("/api/places", placeRoutes);
 const recommendRoutes = require("./routes/recommendRoutes");
 app.use("/api/recommend", recommendRoutes);
 
+const feedbackRoutes = require("./routes/feedbackRoutes");
+app.use("/api/feedback", feedbackRoutes);
+
 // 헬스체크
 app.get("/api/health", (req, res) => {
   res.json({
