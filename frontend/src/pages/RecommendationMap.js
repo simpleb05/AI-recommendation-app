@@ -37,13 +37,18 @@ export default function RecommendationMapScreen({ onNavigate, userToken }) {
     })();
 
     const fetchPlaces = async () => {
+      console.log("전송할 토큰:", userToken);
       try {
         const response = await fetch('http://10.0.2.2:5000/api/places', {
           headers: { 'Authorization': `Bearer ${userToken}` }
         });
         const data = await response.json();
-        if (data.success) setPlaces(data.places);
-      } catch (error) {
+        console.log("서버가 보내준 데이터 구조:", data);
+
+        if (data.success) {
+          setPlaces(data.places);
+          setFilteredPlaces(data.places);}
+        } catch (error) {
         console.error('데이터 통신 에러:', error);
       } finally {
         setLoading(false);
@@ -101,15 +106,43 @@ export default function RecommendationMapScreen({ onNavigate, userToken }) {
       </View>
 
       <View style={styles.mapContainer}>
-        {loading || !region ? <ActivityIndicator size="large" color="#007AFF" style={{ flex: 1 }} /> : (
-          <MapView ref={mapRef} style={styles.map} region={region} onRegionChangeComplete={onRegionChange} showsUserLocation={true} toolbarEnabled={true}>
-            {initialLocation && <Circle center={initialLocation} radius={radius} strokeColor="rgba(0, 122, 255, 0.5)" fillColor="rgba(0, 122, 255, 0.2)" />}
-            {filteredPlaces.map((place) => (
-              <Marker key={place._id} coordinate={{ latitude: parseFloat(place.latitude), longitude: parseFloat(place.longitude) }} title={place.name} onPress={() => setSelectedPlace(place)} />
-            ))}
-          </MapView>
-        )}
-      </View>
+  {/* 데이터는 왔는데 위치가 안 잡혀서 로딩이 안 끝나는 경우를 방지 */}
+  {loading ? (
+    <ActivityIndicator size="large" color="#007AFF" style={{ flex: 1 }} />
+  ) : (
+    <MapView 
+      ref={mapRef} 
+      style={styles.map} 
+      initialRegion={{
+        latitude: initialLocation?.latitude || 35.2278,
+        longitude: initialLocation?.longitude || 128.6817,
+        latitudeDelta: 0.015,
+        longitudeDelta: 0.015,
+      }}
+      showsUserLocation={true}
+    >
+      {initialLocation && (
+        <Circle 
+          center={initialLocation} 
+          radius={radius} 
+          strokeColor="rgba(0, 122, 255, 0.5)" 
+          fillColor="rgba(0, 122, 255, 0.2)" 
+        />
+      )}
+      {filteredPlaces.map((place) => (
+        <Marker 
+          key={place._id} 
+          coordinate={{ 
+            latitude: parseFloat(place.latitude), 
+            longitude: parseFloat(place.longitude) 
+          }} 
+          title={place.name} 
+          onPress={() => setSelectedPlace(place)} 
+        />
+      ))}
+    </MapView>
+  )}
+</View>
 
       <View style={styles.detailCard}>
         {selectedPlace ? (
