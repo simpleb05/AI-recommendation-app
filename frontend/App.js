@@ -83,7 +83,9 @@ export default function App() {
         )}
 
         {currentScreen === 'NewRecommendation' && (
-          <RecommendationMapScreen onNavigate={handleNavigate} />
+          <RecommendationMapScreen onNavigate={handleNavigate} 
+          userToken={userToken}
+          />
         )}
 
         {/* 마이 프로필 화면에 진짜 유저 닉네임과 이메일 배달 */}
@@ -92,6 +94,7 @@ export default function App() {
             onNavigate={handleNavigate} 
             userNickname={userNickname} // 👈 마이페이지 이름 연동!
             userEmail={userEmail}       // 👈 마이페이지 이메일 연동!
+            userToken={userToken}
           />
         )}
 
