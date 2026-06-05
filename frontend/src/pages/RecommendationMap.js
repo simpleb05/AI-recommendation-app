@@ -97,15 +97,21 @@ export default function RecommendationMapScreen({ onNavigate, userToken }) {
 
   const onRegionChange = (newRegion) => {
     if (!initialLocation) return;
-    const km = radius / 1000;
-    const LIMIT = km * 0.02;
-    if (Math.abs(newRegion.latitude - initialLocation.latitude) > LIMIT ||
-        Math.abs(newRegion.longitude - initialLocation.longitude) > LIMIT) {
-        mapRef.current?.animateToRegion({
-            ...initialLocation,
-            latitudeDelta: km * 0.02,
-            longitudeDelta: km * 0.02,
-        }, 500);
+
+    // 현재 지도의 중심과 사용자 위치(initialLocation) 사이의 거리를 계산
+    const dist = getDistance(
+      { latitude: newRegion.latitude, longitude: newRegion.longitude },
+      initialLocation
+    );
+    // 반경(radius)보다 멀어졌다면 다시 중심점으로 복귀
+    // 약간의 여유(radius * 1.1)를 주면 사용자가 줌인/아웃할 때 덜 답답합니다.
+    if (dist > radius) {
+      mapRef.current?.animateToRegion({
+        ...initialLocation,
+        // 드래그 전과 동일한 줌 레벨을 유지하려면 현재의 delta를 그대로 사용
+        latitudeDelta: newRegion.latitudeDelta,
+        longitudeDelta: newRegion.longitudeDelta,
+      }, 500);
     }
   };
 
@@ -189,6 +195,7 @@ export default function RecommendationMapScreen({ onNavigate, userToken }) {
         longitudeDelta: 0.015,
       }}
       showsUserLocation={true}
+      onRegionChangeComplete={onRegionChange}
     >
       {initialLocation && (
         <Circle 
