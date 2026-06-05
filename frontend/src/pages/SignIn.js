@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { StyleSheet, Text, View, TextInput, TouchableOpacity, Alert, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // 💡 App.js로부터 넘어오는 props들을 확실하게 받습니다.
 export default function SignInScreen({ onNavigate, isNewUser, setIsNewUser, onSignInSuccess }) {
@@ -40,7 +41,8 @@ export default function SignInScreen({ onNavigate, isNewUser, setIsNewUser, onSi
       if (response.ok && data.success) {
         // 로그인 성공! 
         Alert.alert('성공', `${data.nickname}님, 환영합니다!`);
-
+        await AsyncStorage.setItem('userToken', data.token);
+        
         if (onSignInSuccess) {
           // 🔑 [안전장치 도입] 변수명 스코프 꼬임 방지를 위해 
           // 백엔드가 돌려준 데이터(data.email)를 최우선으로 쓰고, 없으면 현재 입력창의 텍스트 값을 안전하게 바인딩합니다.

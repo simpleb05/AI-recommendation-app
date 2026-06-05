@@ -1,63 +1,49 @@
-import React, { useState } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, ScrollView, Image } from 'react-native';
+import React, { useState, useEffect } from 'react'; // 1. useEffect 추가
+import { StyleSheet, Text, View, TouchableOpacity, ScrollView, Image, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-
-const INITIAL_FAVORITES = [
-  {
-    id: 1,
-    title: '숲속 감성 카페 "모퉁이"',
-    category: '카페',
-    distance: '1.2 km',
-    address: '창원시 의창구 사림동 12-3',
-    imageUrl: 'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=300&auto=format&fit=crop&q=60'
-  },
-  {
-    id: 2,
-    title: '네온 레이싱 카트장',
-    category: '액티비티',
-    distance: '3.5 km',
-    address: '창원시 성산구 상남동 45-1',
-    imageUrl: 'https://images.unsplash.com/photo-1568605117036-5fe5e7bab0b7?w=300&auto=format&fit=crop&q=60'
-  },
-  {
-    id: 3,
-    title: '아날로그 레트로 오락실',
-    category: '액티비티',
-    distance: '0.8 km',
-    address: '창원시 의창구 퇴촌동 7-2',
-    imageUrl: 'https://images.unsplash.com/photo-1511512578047-dfb367046420?w=300&auto=format&fit=crop&q=60'
-  },
-  {
-    id: 4,
-    title: '호숫가 대나무 숲길',
-    category: '힐링',
-    distance: '2.1 km',
-    address: '창원시 의창구 용호동 88',
-    imageUrl: 'https://images.unsplash.com/photo-1502082553048-f009c37129b9?w=300&auto=format&fit=crop&q=60'
-  },
-  {
-    id: 5,
-    title: '잔잔한 심야 책방',
-    category: '카페',
-    distance: '1.7 km',
-    address: '창원시 성산구 중앙동 19',
-    imageUrl: 'https://images.unsplash.com/photo-1507842217343-583bb7270b66?w=300&auto=format&fit=crop&q=60'
-  }
-];
-
-const CATEGORIES = ['전체', '카페', '액티비티', '힐링'];
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function FavoritesScreen({ onNavigate }) {
-  const [selectedCategory, setSelectedCategory] = useState('전체');
-  const [favorites, setFavorites] = useState(INITIAL_FAVORITES);
+  const [favorites, setFavorites] = useState([]); // 2. 초기값 빈 배열로 변경
+  const [loading, setLoading] = useState(true);   // 로딩 상태 추가
 
-  const handleRemoveFavorite = (id) => {
-    setFavorites(prev => prev.filter(item => item.id !== id));
+  // 3. 서버에서 데이터를 가져오는 함수
+  const fetchFavorites = async () => {
+    try {
+
+    const token = await AsyncStorage.getItem('userToken');
+    console.log("현재 보낼 토큰 값:", token);
+
+     const response = await fetch('http://10.0.2.2:5000/api/favorites', {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}` // 👈 이 부분이 핵심입니다!
+      }
+    });
+      const data = await response.json();
+      console.log("서버에서 받아온 데이터:", data);
+      if (data.success) {
+        setFavorites(data.favorites || []); // 서버에서 받은 데이터 저장
+      }
+    } catch (error) {
+      console.error("즐겨찾기 불러오기 실패:", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const filteredFavorites = favorites.filter(item => 
-    selectedCategory === '전체' || item.category === selectedCategory
-  );
+  useEffect(() => {
+    fetchFavorites(); // 컴포넌트가 처음 뜰 때 실행
+  }, []);
+
+  const handleRemoveFavorite = async (id) => {
+    // 서버 삭제 요청 로직
+    await fetch(`http://10.0.2.2:5000/api/favorites/${id}`, { method: 'DELETE' });
+    setFavorites(prev => prev.filter(item => item._id !== id)); // _id로 비교
+  };
+
+  if (loading) return <ActivityIndicator style={{flex: 1}} size="large" />;
 
   return (
     <SafeAreaView style={styles.container}>
@@ -69,51 +55,33 @@ export default function FavoritesScreen({ onNavigate }) {
         <View style={styles.headerRightSpace} />
       </View>
 
-      <View style={styles.tabBar}>
-        {CATEGORIES.map((cat) => (
-          <TouchableOpacity 
-            key={cat} 
-            style={[styles.tabItem, selectedCategory === cat && styles.activeTabItem]}
-            onPress={() => setSelectedCategory(cat)}
-          >
-            <Text style={[styles.tabText, selectedCategory === cat && styles.activeTabText]}>
-              {cat}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </View>
-
       <ScrollView contentContainerStyle={styles.scrollContainer} showsVerticalScrollIndicator={false}>
-        {filteredFavorites.length === 0 ? (
-          <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>즐겨찾기 한 장소가 없습니다. 🗺️</Text>
-          </View>
-        ) : (
-          filteredFavorites.map((item) => (
-            <View key={item.id} style={styles.favoriteCard}>
-              <Image source={{ uri: item.imageUrl }} style={styles.cardImage} />
-              
-              <View style={styles.cardContent}>
-                <View style={styles.cardHeaderRow}>
-                  <View style={styles.categoryBadge}>
-                    <Text style={styles.categoryBadgeText}>{item.category}</Text>
-                  </View>
-                  <Text style={styles.distanceText}>{item.distance}</Text>
-                </View>
+       {Array.isArray(favorites) && favorites.length === 0 ? (
+    <View style={styles.emptyContainer}>
+      <Text style={styles.emptyText}>즐겨찾기 한 장소가 없습니다. 🗺️</Text>
+    </View>
+  ) : (
+    // 데이터가 있을 때만 맵핑
+    Array.isArray(favorites) && favorites.map((item) => (
+      <TouchableOpacity 
+        key={item._id || item.id} 
+        style={styles.favoriteCard}
+        onPress={() => onNavigate('PlaceDetail', { place: item })}
+      >
+        {/* 데이터가 안전하게 있을 때만 접근 */}
+        <Image source={{ uri: item.placeId?.imageUrl }} style={styles.cardImage} />
+        
+        <View style={styles.cardContent}>
+          <Text style={styles.placeTitle}>{item.placeId?.name || '제목 없음'}</Text>
+          <Text style={styles.placeAddress}>{item.placeId?.address || '주소 없음'}</Text>
+        </View>
 
-                <Text style={styles.placeTitle} numberOfLines={1}>{item.title}</Text>
-                <Text style={styles.placeAddress} numberOfLines={1}>{item.address}</Text>
-              </View>
-
-              <TouchableOpacity 
-                style={styles.heartButton} 
-                onPress={() => handleRemoveFavorite(item.id)}
-              >
-                <Text style={styles.heartIcon}>❤️</Text>
-              </TouchableOpacity>
-            </View>
-          ))
-        )}
+        <TouchableOpacity onPress={() => handleRemoveFavorite(item._id)}>
+          <Text style={styles.heartIcon}>❤️</Text>
+        </TouchableOpacity>
+      </TouchableOpacity>
+    ))
+  )}
       </ScrollView>
     </SafeAreaView>
   );
@@ -127,12 +95,6 @@ const styles = StyleSheet.create({
   headerTitle: { fontSize: 17, fontWeight: 'bold', color: '#111', flex: 1, textAlign: 'center' },
   headerRightSpace: { width: 100 },
   
-  tabBar: { flexDirection: 'row', backgroundColor: '#fff', paddingHorizontal: 16, paddingVertical: 10, borderBottomWidth: 1, borderColor: '#f1f3f5' },
-  tabItem: { paddingHorizontal: 16, paddingVertical: 6, borderRadius: 20, marginRight: 8, backgroundColor: '#f1f3f5' },
-  activeTabItem: { backgroundColor: '#007AFF' },
-  tabText: { fontSize: 13, color: '#495057', fontWeight: '500' },
-  activeTabText: { color: '#fff', fontWeight: 'bold' },
-
   scrollContainer: { padding: 16, paddingBottom: 30 },
   
   favoriteCard: { flexDirection: 'row', backgroundColor: '#fff', borderRadius: 14, padding: 12, marginBottom: 12, borderWidth: 1, borderColor: '#eef0f2', alignItems: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.02, shadowRadius: 3, elevation: 1 },
