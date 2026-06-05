@@ -11,6 +11,16 @@ const placeSchema = new mongoose.Schema({
   openingHours: { type: String },
   photoUrl: { type: String },
   description: { type: String },
+  rating: { type: Number, default: 0 },
+  reviewCount: { type: Number, default: 0 },
+  reviews: [
+    {
+      text: { type: String },
+      authorName: { type: String },
+      rating: { type: Number },
+      time: { type: String },
+    }
+  ],
 }, { timestamps: true });
 
 module.exports = mongoose.model("Place", placeSchema);
