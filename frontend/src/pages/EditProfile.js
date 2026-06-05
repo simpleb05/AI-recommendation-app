@@ -1,13 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, TextInput, ScrollView, Image, Alert } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, TextInput, ScrollView, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-
-const AVATAR_OPTIONS = [
-  'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
-  'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=150&auto=format&fit=crop&q=80',
-  'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80',
-  'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
-];
 
 export default function EditProfileScreen({ onNavigate, userToken, userNickname, setUserNickname }) {
   const [username, setUsername] = useState(userNickname || '사용자님');
@@ -15,7 +8,6 @@ export default function EditProfileScreen({ onNavigate, userToken, userNickname,
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [selectedAvatar, setSelectedAvatar] = useState(AVATAR_OPTIONS[0]);
   
   useEffect(() => {
     const fetchProfile = async () => {
@@ -37,9 +29,7 @@ export default function EditProfileScreen({ onNavigate, userToken, userNickname,
       }
     };
 
-    if (userToken) {
-      fetchProfile();
-    }
+    if (userToken) fetchProfile();
   }, [userToken]);
 
   const handleSave = async () => {
@@ -98,7 +88,6 @@ export default function EditProfileScreen({ onNavigate, userToken, userNickname,
       Alert.alert('성공', '회원 정보가 성공적으로 수정되었습니다.', [
         { text: '확인', onPress: () => onNavigate('MyProfile') }
       ]);
-
     } catch (error) {
       Alert.alert('오류', '서버 연결에 실패했습니다.');
     }
@@ -115,26 +104,6 @@ export default function EditProfileScreen({ onNavigate, userToken, userNickname,
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContainer} showsVerticalScrollIndicator={false}>
-        
-        <View style={styles.avatarSection}>
-          <Image source={{ uri: selectedAvatar }} style={styles.currentAvatar} />
-          <Text style={styles.sectionLabel}>프로필 이미지 선택</Text>
-          <View style={styles.avatarList}>
-            {AVATAR_OPTIONS.map((url, index) => (
-              <TouchableOpacity 
-                key={index} 
-                onPress={() => setSelectedAvatar(url)}
-                style={[
-                  styles.avatarWrapper, 
-                  selectedAvatar === url && styles.selectedAvatarWrapper
-                ]}
-              >
-                <Image source={{ uri: url }} style={styles.subAvatar} />
-              </TouchableOpacity>
-            ))}
-          </View>
-        </View>
-
         <View style={styles.formSection}>
           <Text style={styles.inputLabel}>이름</Text>
           <TextInput 
@@ -184,7 +153,6 @@ export default function EditProfileScreen({ onNavigate, userToken, userNickname,
         <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
           <Text style={styles.saveButtonText}>변경사항 저장하기</Text>
         </TouchableOpacity>
-
       </ScrollView>
     </SafeAreaView>
   );
@@ -197,14 +165,7 @@ const styles = StyleSheet.create({
   backButtonText: { fontSize: 16, color: '#868e96', fontWeight: '600' },
   headerTitle: { fontSize: 18, fontWeight: 'bold', color: '#111', flex: 1, textAlign: 'center' }, 
   headerRightSpace: { width: 60 }, 
-  scrollContainer: { padding: 20, paddingBottom: 40 },
-  avatarSection: { alignItems: 'center', marginBottom: 24, backgroundColor: '#fff', padding: 16, borderRadius: 14, borderWidth: 1, borderColor: '#eee' },
-  currentAvatar: { width: 90, height: 90, borderRadius: 45, marginBottom: 12, borderWidth: 2, borderColor: '#007AFF' },
-  sectionLabel: { fontSize: 13, color: '#666', fontWeight: '600', marginBottom: 10 },
-  avatarList: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center' },
-  avatarWrapper: { padding: 3, borderWidth: 2, borderColor: 'transparent', borderRadius: 30, marginHorizontal: 4 },
-  selectedAvatarWrapper: { borderColor: '#007AFF' },
-  subAvatar: { width: 46, height: 46, borderRadius: 23 },
+  scrollContainer: { padding: 20 },
   formSection: { backgroundColor: '#fff', borderRadius: 14, padding: 16, borderWidth: 1, borderColor: '#eee', marginBottom: 24 },
   inputLabel: { fontSize: 13, fontWeight: 'bold', color: '#495057', marginBottom: 6, paddingLeft: 2 },
   input: { height: 44, backgroundColor: '#f1f3f5', borderRadius: 8, paddingHorizontal: 12, fontSize: 14, color: '#333', marginBottom: 16, borderWidth: 1, borderColor: '#e9ecef' },
