@@ -26,6 +26,22 @@ export default function RecommendationMapScreen({ onNavigate, userToken }) {
   const [userFavorites, setUserFavorites] = useState([]); // 내 즐겨찾기 목록 ID들
   const [isFavorite, setIsFavorite] = useState(false); // 현재 선택된 장소의 하트 상태
   const mapRef = useRef(null);
+  const [userReactions, setUserReactions] = useState({ likes: [], dislikes: [] });
+  const [userFeedbacks, setUserFeedbacks] = useState([]);
+  
+  const fetchFeedbacks = async () => {
+    try {
+      const response = await fetch('http://10.0.2.2:5000/api/feedback', {
+        headers: { 'Authorization': `Bearer ${userToken}` }
+      });
+      const data = await response.json();
+      if (data.success) {
+        setUserFeedbacks(data.feedbacks);
+      }
+    } catch (error) {
+      console.error("피드백 로드 실패:", error);
+    }
+  };
 
   useEffect(() => {
     (async () => {
@@ -160,6 +176,31 @@ export default function RecommendationMapScreen({ onNavigate, userToken }) {
     }
   };
 
+  const toggleReaction = async (placeId, feedbackValue) => {
+  try {
+    const response = await fetch('http://10.0.2.2:5000/api/feedback', {
+      method: 'POST', // 서버에서 POST로 처리 중
+      headers: {
+        'Authorization': `Bearer ${userToken}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ 
+        placeId: placeId, 
+        feedback: feedbackValue // 'like' 또는 'dislike' 문자열 전송
+      })
+    });
+
+    const data = await response.json();
+    if (data.success) {
+      // 성공 시 목록을 다시 불러와서 상태를 최신화 (또는 로컬 상태를 즉시 변경)
+      fetchFeedbacks(); 
+      alert(data.message);
+    }
+  } catch (error) {
+    console.error("피드백 저장 실패:", error);
+  }
+};
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
@@ -221,29 +262,62 @@ export default function RecommendationMapScreen({ onNavigate, userToken }) {
 
 
 </View>
-     <View style={styles.detailCard}>
-  {selectedPlace ? (
-    <ScrollView>
-      {/* 🌟 이름과 하트를 묶어주는 헤더 영역 */}
-      <View style={styles.detailHeader}>
-        <Text style={styles.placeName}>{selectedPlace.name} ✨</Text>
-        <TouchableOpacity onPress={() => toggleFavorite(selectedPlace._id)}>
-          <Text style={{ fontSize: 28 }}>
-            {userFavorites.includes(selectedPlace._id) ? '❤️' : '🤍'}
-          </Text>
-        </TouchableOpacity>
-      </View>
+    <View style={styles.detailCard}>
+        {selectedPlace ? (
+          // 💡 핵심: 카드를 가로지르는 컨테이너를 flex: 1로 설정하여 높이 점유
+          <View style={{ flex: 1 }}>
+            
+            {/* 상단 스크롤 영역 */}
+            <ScrollView showsVerticalScrollIndicator={false}>
+              <View style={styles.detailHeader}>
+                <Text style={styles.placeName}>{selectedPlace.name} ✨</Text>
+                <TouchableOpacity onPress={() => toggleFavorite(selectedPlace._id)}>
+                  <Text style={{ fontSize: 28 }}>
+                    {userFavorites.includes(selectedPlace._id) ? '❤️' : '🤍'}
+                  </Text>
+                </TouchableOpacity>
+              </View>
 
-      <Text style={styles.addressText}>📍 {selectedPlace.address}</Text>
-      <View style={styles.divider} />
-      <Text style={styles.descContent}>{selectedPlace.description}</Text>
-    </ScrollView>
-  ) : (
-    <View style={styles.emptyContainer}>
-      <Text style={styles.emptyText}>핀을 선택해 상세 정보를 확인하세요.</Text>
-    </View>
-  )}
-</View>
+              <Text style={styles.addressText}>📍 {selectedPlace.address}</Text>
+              <View style={styles.divider} />
+              <Text style={styles.descContent}>{selectedPlace.description}</Text>
+              
+              {/* 버튼이 아래로 밀려나기 위한 하단 여백용 View */}
+              <View style={{ height: 80 }} /> 
+            </ScrollView>
+
+            {/* 하단 고정 버튼 영역 */}
+            <View style={styles.buttonFooter}>
+              <TouchableOpacity 
+                style={[
+                  styles.reactionBtn, 
+                  { opacity: userFeedbacks.some(f => f.placeId._id === selectedPlace._id && f.feedback === 'like') ? 1 : 0.4 }
+                ]} 
+                onPress={() => toggleReaction(selectedPlace._id, 'like')}
+              >
+                <Text style={{ fontSize: 24 }}>👍</Text>
+                <Text style={styles.btnLabel}>좋아요</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity 
+                style={[
+                  styles.reactionBtn, 
+                  { opacity: userFeedbacks.some(f => f.placeId._id === selectedPlace._id && f.feedback === 'dislike') ? 1 : 0.4 }
+                ]} 
+                onPress={() => toggleReaction(selectedPlace._id, 'dislike')}
+              >
+                <Text style={{ fontSize: 24 }}>👎</Text>
+                <Text style={styles.btnLabel}>별로예요</Text>
+              </TouchableOpacity>
+            </View>
+
+          </View>
+        ) : (
+          <View style={styles.emptyContainer}>
+            <Text style={styles.emptyText}>핀을 선택해 상세 정보를 확인하세요.</Text>
+          </View>
+        )}
+      </View>
     </SafeAreaView>
   );
 }
@@ -255,7 +329,6 @@ const styles = StyleSheet.create({
   headerTitle: { fontSize: 18, fontWeight: 'bold' },
   mapContainer: { flex: 1 },
   map: { width: '100%', height: '100%' },
-  detailCard: { height: 330, backgroundColor: '#fff', borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 20, elevation: 10 },
   placeName: { fontSize: 18, fontWeight: 'bold' },
   addressText: { fontSize: 13, color: '#666' },
   divider: { height: 1, backgroundColor: '#eee', marginVertical: 12 },
@@ -279,4 +352,42 @@ const styles = StyleSheet.create({
     flex: 1,                         // 이름이 길어질 경우를 대비해 공간 점유
     marginRight: 10,                 // 이름과 하트 사이의 간격
   },
+  reactionButtons: {
+  flexDirection: 'row',
+  alignItems: 'center',
+},
+detailCard: { 
+    height: 330, 
+    backgroundColor: '#fff', 
+    borderTopLeftRadius: 24, 
+    borderTopRightRadius: 24, 
+    padding: 20, 
+    elevation: 10 
+  },
+  buttonFooter: {
+    position: 'absolute', // 카드 내부에 절대 위치로 배치
+    bottom: 0,
+    left: 0,
+    right: 0,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    backgroundColor: '#fff',
+    borderTopWidth: 1,
+    borderColor: '#eee',
+  },
+  reactionBtn: {
+    paddingHorizontal: 25,
+    paddingVertical: 8,
+    marginHorizontal: 10,
+    backgroundColor: '#f1f3f5',
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  btnLabel: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#444',
+    marginTop: 4,
+  }
 });
