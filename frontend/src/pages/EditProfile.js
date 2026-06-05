@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, TextInput, ScrollView, Image, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -11,10 +11,36 @@ const AVATAR_OPTIONS = [
 
 export default function EditProfileScreen({ onNavigate, userToken, userNickname, setUserNickname }) {
   const [username, setUsername] = useState(userNickname || '사용자님');
+  const [userEmail, setUserEmail] = useState('');
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [selectedAvatar, setSelectedAvatar] = useState(AVATAR_OPTIONS[0]);
+  
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const response = await fetch('http://10.0.2.2:5000/api/user/profile', {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${userToken}`,
+          },
+        });
+        const data = await response.json();
+        if (data.success) {
+          setUsername(data.user.nickname);
+          setUserEmail(data.user.email);
+        }
+      } catch (error) {
+        console.error('프로필 불러오기 실패:', error);
+      }
+    };
+
+    if (userToken) {
+      fetchProfile();
+    }
+  }, [userToken]);
 
   const handleSave = async () => {
     if (!username.trim()) {
@@ -121,7 +147,7 @@ export default function EditProfileScreen({ onNavigate, userToken, userNickname,
           <Text style={styles.inputLabel}>이메일 (변경 불가)</Text>
           <TextInput 
             style={[styles.input, styles.disabledInput]}
-            value="user@changwon.ac.kr"
+            value={userEmail}
             editable={false}
           />
 
