@@ -77,8 +77,9 @@ export default function App() {
         )}
 
         {currentScreen === 'TodayMood' && (
-          <TodayMoodScreen onNavigate={handleNavigate} 
-          userToken={userToken}
+          <TodayMoodScreen 
+            onNavigate={handleNavigate}
+            userToken={userToken}
           />
         )}
 
@@ -99,7 +100,12 @@ export default function App() {
         )}
 
         {currentScreen === 'EditProfile' && (
-          <EditProfileScreen onNavigate={handleNavigate} />
+          <EditProfileScreen 
+            onNavigate={handleNavigate} 
+            userToken={userToken}
+            userNickname={userNickname}
+            setUserNickname={setUserNickname}
+          />
         )}
 
         {currentScreen === 'Favorites' && (

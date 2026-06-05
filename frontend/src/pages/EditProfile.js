@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, TextInput, ScrollView, Image, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -9,19 +9,45 @@ const AVATAR_OPTIONS = [
   'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
 ];
 
-export default function EditProfileScreen({ onNavigate }) {
-  const [username, setUsername] = useState('사용자님');
+export default function EditProfileScreen({ onNavigate, userToken, userNickname, setUserNickname }) {
+  const [username, setUsername] = useState(userNickname || '사용자님');
+  const [userEmail, setUserEmail] = useState('');
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [selectedAvatar, setSelectedAvatar] = useState(AVATAR_OPTIONS[0]);
+  
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const response = await fetch('http://10.0.2.2:5000/api/user/profile', {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${userToken}`,
+          },
+        });
+        const data = await response.json();
+        if (data.success) {
+          setUsername(data.user.nickname);
+          setUserEmail(data.user.email);
+        }
+      } catch (error) {
+        console.error('프로필 불러오기 실패:', error);
+      }
+    };
 
-  const handleSave = () => {
+    if (userToken) {
+      fetchProfile();
+    }
+  }, [userToken]);
+
+  const handleSave = async () => {
     if (!username.trim()) {
       Alert.alert('경고', '이름을 입력해 주세요.');
       return;
     }
-    
+
     if (currentPassword || newPassword || confirmPassword) {
       if (!currentPassword) {
         Alert.alert('경고', '현재 비밀번호를 입력해야 변경이 가능합니다.');
@@ -33,9 +59,49 @@ export default function EditProfileScreen({ onNavigate }) {
       }
     }
 
-    Alert.alert('성공', '회원 정보가 성공적으로 수정되었습니다.', [
-      { text: '확인', onPress: () => onNavigate('MyProfile') }
-    ]);
+    try {
+      // 닉네임 변경
+      if (username !== userNickname) {
+        const nicknameRes = await fetch('http://10.0.2.2:5000/api/user/nickname', {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${userToken}`,
+          },
+          body: JSON.stringify({ nickname: username }),
+        });
+        const nicknameData = await nicknameRes.json();
+        if (!nicknameData.success) {
+          Alert.alert('오류', nicknameData.message);
+          return;
+        }
+        setUserNickname(username);
+      }
+
+      // 비밀번호 변경
+      if (currentPassword && newPassword) {
+        const passwordRes = await fetch('http://10.0.2.2:5000/api/user/password', {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${userToken}`,
+          },
+          body: JSON.stringify({ currentPassword, newPassword }),
+        });
+        const passwordData = await passwordRes.json();
+        if (!passwordData.success) {
+          Alert.alert('오류', passwordData.message);
+          return;
+        }
+      }
+
+      Alert.alert('성공', '회원 정보가 성공적으로 수정되었습니다.', [
+        { text: '확인', onPress: () => onNavigate('MyProfile') }
+      ]);
+
+    } catch (error) {
+      Alert.alert('오류', '서버 연결에 실패했습니다.');
+    }
   };
 
   return (
@@ -81,7 +147,7 @@ export default function EditProfileScreen({ onNavigate }) {
           <Text style={styles.inputLabel}>이메일 (변경 불가)</Text>
           <TextInput 
             style={[styles.input, styles.disabledInput]}
-            value="user@changwon.ac.kr"
+            value={userEmail}
             editable={false}
           />
 
