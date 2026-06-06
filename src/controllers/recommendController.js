@@ -120,6 +120,43 @@ const getRecommendations = async (req, res) => {
       latitude,
       longitude,
     });
+    
+    // 추천 결과 DB 저장
+    await Promise.all(
+      recommendations.map(async (place) => {
+        await Place.findOneAndUpdate(
+          {
+            googlePlaceId: place.id,
+          },
+          {
+            googlePlaceId: place.id,
+            name: place.name,
+            category: keyword,
+            moodTag: selectedMoodTag,
+            address: place.address,
+
+            latitude: place.latitude,
+            longitude: place.longitude,
+
+            rating: place.rating || 0,
+            userRatingsTotal: place.userRatingsTotal || 0,
+
+            types: place.types || [],
+            isOpen: place.isOpen,
+
+            hashtags: place.hashtags || [],
+            score: place.score || 0,
+            reason: place.reason || "",
+
+            description: place.reason || "",
+          },
+          {
+            upsert: true,
+            new: true,
+          }
+        );
+      })
+    );
 
     return res.json({
       success: true,
