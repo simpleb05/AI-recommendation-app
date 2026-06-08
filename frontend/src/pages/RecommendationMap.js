@@ -270,7 +270,7 @@ export default function RecommendationMapScreen({ onNavigate, userToken }) {
             {/* 상단 스크롤 영역 */}
             <ScrollView showsVerticalScrollIndicator={false}>
               <View style={styles.detailHeader}>
-                <Text style={styles.placeName}>{selectedPlace.name} ✨</Text>
+                <Text style={styles.placeName}>{selectedPlace.name}</Text>
                 <TouchableOpacity onPress={() => toggleFavorite(selectedPlace._id)}>
                   <Text style={{ fontSize: 28 }}>
                     {userFavorites.includes(selectedPlace._id) ? '❤️' : '🤍'}
@@ -288,28 +288,29 @@ export default function RecommendationMapScreen({ onNavigate, userToken }) {
 
             {/* 하단 고정 버튼 영역 */}
             <View style={styles.buttonFooter}>
-              <TouchableOpacity 
-                style={[
-                  styles.reactionBtn, 
-                  { opacity: userFeedbacks.some(f => f.placeId._id === selectedPlace._id && f.feedback === 'like') ? 1 : 0.4 }
-                ]} 
-                onPress={() => toggleReaction(selectedPlace._id, 'like')}
-              >
-                <Text style={{ fontSize: 24 }}>👍</Text>
-                <Text style={styles.btnLabel}>좋아요</Text>
-              </TouchableOpacity>
+                    <TouchableOpacity 
+            style={[
+              styles.reactionBtn, 
+              userFeedbacks.some(f => f.placeId?._id === selectedPlace._id && f.feedback === 'like') && styles.activeLike
+            ]} 
+            onPress={() => toggleReaction(selectedPlace._id, 'like')}
+          >
+            <Text style={{ fontSize: 18 }}>👍</Text>
+            <Text style={styles.btnLabel}>좋아요</Text>
+          </TouchableOpacity>
 
-              <TouchableOpacity 
-                style={[
-                  styles.reactionBtn, 
-                  { opacity: userFeedbacks.some(f => f.placeId._id === selectedPlace._id && f.feedback === 'dislike') ? 1 : 0.4 }
-                ]} 
-                onPress={() => toggleReaction(selectedPlace._id, 'dislike')}
-              >
-                <Text style={{ fontSize: 24 }}>👎</Text>
-                <Text style={styles.btnLabel}>별로예요</Text>
-              </TouchableOpacity>
-            </View>
+          {/* 별로예요 버튼 */}
+          <TouchableOpacity 
+            style={[
+              styles.reactionBtn, 
+              userFeedbacks.some(f => f.placeId?._id === selectedPlace._id && f.feedback === 'dislike') && styles.activeDislike
+            ]} 
+            onPress={() => toggleReaction(selectedPlace._id, 'dislike')}
+          >
+            <Text style={{ fontSize: 18 }}>👎</Text>
+            <Text style={styles.btnLabel}>별로예요</Text>
+          </TouchableOpacity>
+          </View>
 
           </View>
         ) : (
@@ -365,29 +366,35 @@ detailCard: {
     elevation: 10 
   },
   buttonFooter: {
-    position: 'absolute', // 카드 내부에 절대 위치로 배치
-    bottom: 0,
-    left: 0,
-    right: 0,
     flexDirection: 'row',
     justifyContent: 'center',
-    paddingVertical: 12,
-    backgroundColor: '#fff',
-    borderTopWidth: 1,
-    borderColor: '#eee',
+    gap: 12,
+    marginTop: 15,
   },
   reactionBtn: {
-    paddingHorizontal: 25,
-    paddingVertical: 8,
-    marginHorizontal: 10,
-    backgroundColor: '#f1f3f5',
-    borderRadius: 12,
+    flexDirection: 'row',
     alignItems: 'center',
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#e9ecef',
+    backgroundColor: '#fff',
+  },
+  // ⭐ 좋아요 활성화 스타일 (초록)
+  activeLike: {
+    backgroundColor: '#E8F5E9',
+    borderColor: '#4CAF50',
+  },
+  // ⭐ 별로예요 활성화 스타일 (빨강)
+  activeDislike: {
+    backgroundColor: '#FFEBEE',
+    borderColor: '#F44336',
   },
   btnLabel: {
-    fontSize: 11,
+    fontSize: 14,
     fontWeight: '600',
-    color: '#444',
-    marginTop: 4,
+    color: '#333',
+    marginLeft: 6,
   }
 });
