@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react'; // 1. useEffect 추가
 import { StyleSheet, Text, View, TouchableOpacity, ScrollView, Image, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getIconName } from '../../tagIcons';
+import { Ionicons } from '@expo/vector-icons';
 
 export default function FavoritesScreen({ onNavigate }) {
   const [favorites, setFavorites] = useState([]); // 2. 초기값 빈 배열로 변경
@@ -69,7 +71,13 @@ export default function FavoritesScreen({ onNavigate }) {
         onPress={() => onNavigate('PlaceDetail', { place: item })}
       >
         {/* 데이터가 안전하게 있을 때만 접근 */}
-        <Image source={{ uri: item.placeId?.imageUrl }} style={styles.cardImage} />
+        <View style={styles.cardIconBox}>
+           <Ionicons 
+              name={getIconName(item.placeId?.hashtags || [item.placeId?.category])} 
+              size={30} 
+              color="#4A6741" 
+           />
+         </View>
         
         <View style={styles.cardContent}>
           <Text style={styles.placeTitle}>{item.placeId?.name || '제목 없음'}</Text>
@@ -97,6 +105,15 @@ const styles = StyleSheet.create({
   scrollContainer: { padding: 16, paddingBottom: 30 },
   favoriteCard: { flexDirection: 'row', backgroundColor: '#fff', borderRadius: 14, padding: 12, marginBottom: 12, borderWidth: 1, borderColor: '#b5c9b0', alignItems: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.02, shadowRadius: 3, elevation: 1 },
   cardImage: { width: 75, height: 75, borderRadius: 10, backgroundColor: '#e8f0e5' },
+  cardIconBox: { 
+    width: 60,            // 적절한 크기
+    height: 60,           // width와 같게 설정
+    borderRadius: 30,     // width의 절반 (완벽한 원)
+    backgroundColor: '#f0f0f0', // 연한 회색 배경
+    justifyContent: 'center',    // 세로 중앙
+    alignItems: 'center',        // 가로 중앙
+    marginRight: 15,
+  },
   cardContent: { flex: 1, marginLeft: 14, justifyContent: 'center' },
   cardHeaderRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 4 },
   categoryBadge: { backgroundColor: '#e8f0e5', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4, marginRight: 6 },
