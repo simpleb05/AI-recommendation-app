@@ -15,7 +15,7 @@ export default function HomeScreen({ onNavigate, userToken, userNickname }) {
   const [nickname, setNickname] = useState(userNickname || '사용자');
   const [userTags, setUserTags] = useState([]);
   const [userFeedbacks, setUserFeedbacks] = useState([]);
-
+  const profileImage = require('../../assets/profile.png');
   // 🌟 화면이 켜질 때 백엔드에서 내 취향 정보(태그)를 가져오는 함수
   const fetchUserData = async () => {
     try {
@@ -178,7 +178,7 @@ const sendFeedbackToServer = async (targetId, feedbackType) => {
         <TouchableOpacity style={styles.profileHeaderBox} onPress={() => onNavigate('MyProfile')}>
           <View style={styles.profileRow}>
             <Image 
-              source={{ uri: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80' }} 
+              source={profileImage}
               style={styles.profileImage} 
             />
             <View style={styles.profileTextBox}>

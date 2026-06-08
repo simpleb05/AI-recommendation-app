@@ -9,7 +9,7 @@ export default function MyProfileScreen({ onNavigate, userToken, userNickname, u
   // 이용 안내 모달 팝업의 열림/닫힘 상태 관리
   const [isGuideVisible, setIsGuideVisible] = useState(false);
   const [myFavorites, setMyFavorites] = useState([]);
-
+  const profileImage = require('../../assets/profile.png');
   // 🌟 서버에서 즐겨찾기 목록 불러오기
   useEffect(() => {
     const fetchMyFavorites = async () => {
@@ -44,7 +44,7 @@ export default function MyProfileScreen({ onNavigate, userToken, userNickname, u
         
         <View style={styles.profileSection}>
           <Image 
-            source={{ uri: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80' }} 
+            source={profileImage}
             style={styles.avatar} 
           />
           {/* 🔑 [수정 완료] 복잡하고 에러 나던 fetch를 제거하고, App.js가 배달해 준 진짜 정보를 바로 렌더링합니다! */}
