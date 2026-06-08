@@ -19,13 +19,19 @@ const getRecommendations = async (req, res) => {
 
     const { activityType, moodTag, budgetRange } = user.preference;
 
+    console.log("activityType:", activityType);
+    console.log("moodTag:", moodTag);
+
     // 기본은 Google Places 추천 사용
     // DB 추천을 보고 싶을 때만 ?source=database 사용
     const forceGoogle = req.query.source !== "database";
 
     const limit = Number(req.query.limit) || 3;
 
-    const keyword = req.query.keyword || activityType || "카페";
+    const keyword =
+      req.query.keyword ||
+      activityType ||
+      (moodTag ? `${moodTag} 놀거리` : "놀거리");
     const selectedMoodTag = req.query.moodTag || moodTag;
 
     const defaultLatitude = 35.2278;
