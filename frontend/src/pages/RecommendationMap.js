@@ -277,7 +277,12 @@ export default function RecommendationMapScreen({ onNavigate, userToken }) {
                   </Text>
                 </TouchableOpacity>
               </View>
-
+               <View style={styles.infoRow}>
+    <Text style={styles.ratingText}>⭐ {selectedPlace.rating || 0} ({selectedPlace.userRatingsTotal || 0}명)</Text>
+    <Text style={[styles.statusText, { color: selectedPlace.isOpen ? '#28a745' : '#dc3545' }]}>
+      {selectedPlace.isOpen ? '● 영업중' : '○ 영업종료'}
+    </Text>
+  </View>
               <Text style={styles.addressText}>📍 {selectedPlace.address}</Text>
               <View style={styles.divider} />
               <Text style={styles.descContent}>{selectedPlace.description}</Text>
@@ -348,5 +353,20 @@ const styles = StyleSheet.create({
   reactionBtn: { flexDirection: 'row', alignItems: 'center', paddingVertical: 8, paddingHorizontal: 16, borderRadius: 12, borderWidth: 1, borderColor: '#b5c9b0', backgroundColor: '#fff' },
   activeLike: { backgroundColor: '#E8F5E9', borderColor: '#4CAF50' },
   activeDislike: { backgroundColor: '#FFEBEE', borderColor: '#F44336' },
-  btnLabel: { fontSize: 14, fontWeight: '600', color: '#4A6741', marginLeft: 6 }
+  btnLabel: { fontSize: 14, fontWeight: '600', color: '#4A6741', marginLeft: 6 },
+  infoRow: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  marginVertical: 8,
+  gap: 15, // 텍스트 사이 간격
+},
+ratingText: {
+  fontSize: 14,
+  fontWeight: '600',
+  color: '#f39c12', // 별점 색상
+},
+statusText: {
+  fontSize: 14,
+  fontWeight: 'bold',
+},
 });
