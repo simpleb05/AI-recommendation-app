@@ -324,77 +324,29 @@ export default function RecommendationMapScreen({ onNavigate, userToken }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f8f9fa' },
-  header: { height: 56, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, backgroundColor: '#fff', borderBottomWidth: 1, borderColor: '#eee' },
-  backButtonText: { fontSize: 16, color: '#007AFF', fontWeight: '600' },
-  headerTitle: { fontSize: 18, fontWeight: 'bold' },
+  container: { flex: 1, backgroundColor: '#F1F8F1' },
+  header: { height: 56, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, backgroundColor: '#F1F8F1', borderBottomWidth: 1, borderColor: '#b5c9b0' },
+  backButtonText: { fontSize: 16, color: '#4A6741', fontWeight: '600' },
+  headerTitle: { fontSize: 18, fontWeight: 'bold', color: '#4A6741' },
   mapContainer: { flex: 1 },
   map: { width: '100%', height: '100%' },
-  placeName: { fontSize: 18, fontWeight: 'bold' },
-  addressText: { fontSize: 13, color: '#666' },
-  divider: { height: 1, backgroundColor: '#eee', marginVertical: 12 },
-  descContent: { fontSize: 14, color: '#333' },
+  placeName: { fontSize: 18, fontWeight: 'bold', color: '#4A6741' },
+  addressText: { fontSize: 13, color: '#6B7F5E' },
+  divider: { height: 1, backgroundColor: '#b5c9b0', marginVertical: 12 },
+  descContent: { fontSize: 14, color: '#4A6741' },
   emptyContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  emptyText: { fontSize: 13, color: '#888' },
-  radiusControl: { flexDirection: 'row', justifyContent: 'center', padding: 10, backgroundColor: '#fff' },
-  radiusButton: { paddingHorizontal: 15, paddingVertical: 8, marginHorizontal: 5, borderRadius: 20, backgroundColor: '#f0f0f0' },
-  activeButton: { backgroundColor: '#007AFF' },
+  emptyText: { fontSize: 13, color: '#6B7F5E' },
+  radiusControl: { flexDirection: 'row', justifyContent: 'center', padding: 10, backgroundColor: '#F1F8F1' },
+  radiusButton: { paddingHorizontal: 15, paddingVertical: 8, marginHorizontal: 5, borderRadius: 20, backgroundColor: '#e8f0e5' },
+  activeButton: { backgroundColor: '#4A6741' },
   activeText: { color: '#fff', fontWeight: 'bold' },
-  inactiveText: { color: '#333' },
-  detailHeader: {
-    flexDirection: 'row',            // 가로 정렬
-    justifyContent: 'space-between', // 이름은 왼쪽, 하트는 오른쪽 끝으로 배치
-    alignItems: 'center',            // 하트와 텍스트의 높이를 중앙으로 맞춤
-    marginBottom: 8,
-  },
-  placeName: {
-    fontSize: 20,                    // 조금 더 키웠습니다 (취향껏 조절하세요)
-    fontWeight: 'bold',
-    flex: 1,                         // 이름이 길어질 경우를 대비해 공간 점유
-    marginRight: 10,                 // 이름과 하트 사이의 간격
-  },
-  reactionButtons: {
-  flexDirection: 'row',
-  alignItems: 'center',
-},
-detailCard: { 
-    height: 330, 
-    backgroundColor: '#fff', 
-    borderTopLeftRadius: 24, 
-    borderTopRightRadius: 24, 
-    padding: 20, 
-    elevation: 10 
-  },
-  buttonFooter: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: 12,
-    marginTop: 15,
-  },
-  reactionBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#e9ecef',
-    backgroundColor: '#fff',
-  },
-  // ⭐ 좋아요 활성화 스타일 (초록)
-  activeLike: {
-    backgroundColor: '#E8F5E9',
-    borderColor: '#4CAF50',
-  },
-  // ⭐ 별로예요 활성화 스타일 (빨강)
-  activeDislike: {
-    backgroundColor: '#FFEBEE',
-    borderColor: '#F44336',
-  },
-  btnLabel: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#333',
-    marginLeft: 6,
-  }
+  inactiveText: { color: '#4A6741' },
+  detailHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
+  reactionButtons: { flexDirection: 'row', alignItems: 'center' },
+  detailCard: { height: 330, backgroundColor: '#fff', borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 20, elevation: 10 },
+  buttonFooter: { flexDirection: 'row', justifyContent: 'center', gap: 12, marginTop: 15 },
+  reactionBtn: { flexDirection: 'row', alignItems: 'center', paddingVertical: 8, paddingHorizontal: 16, borderRadius: 12, borderWidth: 1, borderColor: '#b5c9b0', backgroundColor: '#fff' },
+  activeLike: { backgroundColor: '#E8F5E9', borderColor: '#4CAF50' },
+  activeDislike: { backgroundColor: '#FFEBEE', borderColor: '#F44336' },
+  btnLabel: { fontSize: 14, fontWeight: '600', color: '#4A6741', marginLeft: 6 }
 });
