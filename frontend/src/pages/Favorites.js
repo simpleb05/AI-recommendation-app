@@ -88,28 +88,24 @@ export default function FavoritesScreen({ onNavigate }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f8f9fa' },
-  header: { height: 56, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, backgroundColor: '#fff', borderBottomWidth: 1, borderColor: '#eee' },
+  container: { flex: 1, backgroundColor: '#F1F8F1' },
+  header: { height: 56, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, backgroundColor: '#F1F8F1', borderBottomWidth: 1, borderColor: '#b5c9b0' },
   backButton: { width: 100, paddingVertical: 8 },
-  backButtonText: { fontSize: 15, color: '#868e96', fontWeight: '600' },
-  headerTitle: { fontSize: 17, fontWeight: 'bold', color: '#111', flex: 1, textAlign: 'center' },
+  backButtonText: { fontSize: 15, color: '#4A6741', fontWeight: '600' },
+  headerTitle: { fontSize: 17, fontWeight: 'bold', color: '#4A6741', flex: 1, textAlign: 'center' },
   headerRightSpace: { width: 100 },
-  
   scrollContainer: { padding: 16, paddingBottom: 30 },
-  
-  favoriteCard: { flexDirection: 'row', backgroundColor: '#fff', borderRadius: 14, padding: 12, marginBottom: 12, borderWidth: 1, borderColor: '#eef0f2', alignItems: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.02, shadowRadius: 3, elevation: 1 },
-  cardImage: { width: 75, height: 75, borderRadius: 10, backgroundColor: '#eee' },
+  favoriteCard: { flexDirection: 'row', backgroundColor: '#fff', borderRadius: 14, padding: 12, marginBottom: 12, borderWidth: 1, borderColor: '#b5c9b0', alignItems: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.02, shadowRadius: 3, elevation: 1 },
+  cardImage: { width: 75, height: 75, borderRadius: 10, backgroundColor: '#e8f0e5' },
   cardContent: { flex: 1, marginLeft: 14, justifyContent: 'center' },
   cardHeaderRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 4 },
-  categoryBadge: { backgroundColor: '#E3F2FD', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4, marginRight: 6 },
-  categoryBadgeText: { fontSize: 10, color: '#007AFF', fontWeight: 'bold' },
-  distanceText: { fontSize: 11, fontWeight: '700', color: '#ff3b30' },
-  placeTitle: { fontSize: 15, fontWeight: 'bold', color: '#111', marginBottom: 2 },
-  placeAddress: { fontSize: 12, color: '#868e96' },
-  
+  categoryBadge: { backgroundColor: '#e8f0e5', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4, marginRight: 6 },
+  categoryBadgeText: { fontSize: 10, color: '#4A6741', fontWeight: 'bold' },
+  distanceText: { fontSize: 11, fontWeight: '700', color: '#4A6741' },
+  placeTitle: { fontSize: 15, fontWeight: 'bold', color: '#4A6741', marginBottom: 2 },
+  placeAddress: { fontSize: 12, color: '#6B7F5E' },
   heartButton: { padding: 8, justifyContent: 'center', alignItems: 'center' },
   heartIcon: { fontSize: 20 },
-
   emptyContainer: { alignItems: 'center', justifyContent: 'center', marginTop: 100 },
-  emptyText: { fontSize: 14, color: '#868e96', fontWeight: '500' }
+  emptyText: { fontSize: 14, color: '#6B7F5E', fontWeight: '500' }
 });

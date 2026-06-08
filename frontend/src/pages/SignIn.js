@@ -133,18 +133,18 @@ export default function SignInScreen({ onNavigate, isNewUser, setIsNewUser, onSi
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
+  container: { flex: 1, backgroundColor: '#F1F8F1' },
   scrollContainer: { flexGrow: 1, padding: 24, justifyContent: 'center' },
   headerGroup: { marginBottom: 40, alignItems: 'center' },
-  title: { fontSize: 28, fontWeight: 'bold', color: '#111', marginBottom: 8 },
-  subtitle: { fontSize: 15, color: '#666' },
+  title: { fontSize: 28, fontWeight: 'bold', color: '#4A6741', marginBottom: 8 },
+  subtitle: { fontSize: 15, color: '#6B7F5E' },
   inputGroup: { marginBottom: 24 },
   labelRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
-  label: { fontSize: 14, fontWeight: '600', color: '#444' },
-  toggleText: { fontSize: 12, color: '#007AFF', fontWeight: '500' },
-  input: { borderWidth: 1, borderColor: '#e0e0e0', borderRadius: 8, padding: 14, fontSize: 16, marginBottom: 16, backgroundColor: '#fafafa' },
-  loginButton: { backgroundColor: '#007AFF', paddingVertical: 16, borderRadius: 8, alignItems: 'center', marginTop: 8 },
+  label: { fontSize: 14, fontWeight: '600', color: '#4A6741' },
+  toggleText: { fontSize: 12, color: '#4A6741', fontWeight: '500' },
+  input: { borderWidth: 1, borderColor: '#b5c9b0', borderRadius: 8, padding: 14, fontSize: 16, marginBottom: 16, backgroundColor: '#fff' },
+  loginButton: { backgroundColor: '#4A6741', paddingVertical: 16, borderRadius: 8, alignItems: 'center', marginTop: 8 },
   loginButtonText: { color: '#fff', fontSize: 18, fontWeight: 'bold' },
   backButton: { marginTop: 16, alignItems: 'center', paddingVertical: 10 },
-  backButtonText: { color: '#666', fontSize: 16 },
+  backButtonText: { color: '#6B7F5E', fontSize: 16 },
 });

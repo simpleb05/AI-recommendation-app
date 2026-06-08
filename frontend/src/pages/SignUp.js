@@ -94,14 +94,14 @@ const data = await response.json();
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
+  container: { flex: 1, backgroundColor: '#F1F8F1' },
   scrollContainer: { flexGrow: 1, padding: 24, justifyContent: 'center' },
-  title: { fontSize: 28, fontWeight: 'bold', marginBottom: 32, textAlign: 'center', color: '#111' },
+  title: { fontSize: 28, fontWeight: 'bold', marginBottom: 32, textAlign: 'center', color: '#4A6741' },
   inputGroup: { marginBottom: 30 },
-  label: { fontSize: 14, fontWeight: '600', marginBottom: 8, color: '#444' },
-  input: { borderWidth: 1, borderColor: '#e0e0e0', borderRadius: 8, padding: 14, fontSize: 16, marginBottom: 16, backgroundColor: '#fafafa' },
-  button: { backgroundColor: '#007AFF', paddingVertical: 16, borderRadius: 8, alignItems: 'center', marginTop: 10 },
+  label: { fontSize: 14, fontWeight: '600', marginBottom: 8, color: '#4A6741' },
+  input: { borderWidth: 1, borderColor: '#b5c9b0', borderRadius: 8, padding: 14, fontSize: 16, marginBottom: 16, backgroundColor: '#fff' },
+  button: { backgroundColor: '#4A6741', paddingVertical: 16, borderRadius: 8, alignItems: 'center', marginTop: 10 },
   buttonText: { color: '#fff', fontSize: 18, fontWeight: 'bold' },
   backButton: { marginTop: 16, alignItems: 'center', paddingVertical: 10 },
-  backButtonText: { color: '#666', fontSize: 16 },
+  backButtonText: { color: '#6B7F5E', fontSize: 16 },
 });

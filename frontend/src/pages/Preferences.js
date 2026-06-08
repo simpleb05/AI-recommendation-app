@@ -115,19 +115,19 @@ export default function PreferencesScreen({ onNavigate, userToken }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
+  container: { flex: 1, backgroundColor: '#F1F8F1' },
   innerContainer: { flex: 1, padding: 24 },
   headerZone: { marginVertical: 20, alignItems: 'center' },
-  mainTitle: { fontSize: 26, fontWeight: 'bold', color: '#111', marginBottom: 8 },
-  subTitle: { fontSize: 14, color: '#666', textAlign: 'center', lineHeight: 20 },
+  mainTitle: { fontSize: 26, fontWeight: 'bold', color: '#4A6741', marginBottom: 8 },
+  subTitle: { fontSize: 14, color: '#6B7F5E', textAlign: 'center', lineHeight: 20 },
   tagSection: { flex: 1, marginBottom: 24 },
-  sectionTitle: { fontSize: 16, fontWeight: '600', color: '#444', marginBottom: 14 },
-  tagScrollBox: { flex: 1, borderWidth: 1, borderColor: '#e8e8e8', borderRadius: 12, backgroundColor: '#fafafa', padding: 12 },
+  sectionTitle: { fontSize: 16, fontWeight: '600', color: '#4A6741', marginBottom: 14 },
+  tagScrollBox: { flex: 1, borderWidth: 1, borderColor: '#b5c9b0', borderRadius: 12, backgroundColor: '#fff', padding: 12 },
   tagGrid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' },
-  tagButton: { width: '48%', backgroundColor: '#fff', borderWidth: 1, borderColor: '#e0e0e0', paddingVertical: 14, borderRadius: 8, alignItems: 'center', marginBottom: 12, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.05, shadowRadius: 1, elevation: 1 },
-  selectedTagButton: { backgroundColor: '#007AFF', borderColor: '#007AFF' },
-  tagButtonText: { fontSize: 15, color: '#555', fontWeight: '500' },
+  tagButton: { width: '48%', backgroundColor: '#fff', borderWidth: 1, borderColor: '#b5c9b0', paddingVertical: 14, borderRadius: 8, alignItems: 'center', marginBottom: 12, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.05, shadowRadius: 1, elevation: 1 },
+  selectedTagButton: { backgroundColor: '#4A6741', borderColor: '#4A6741' },
+  tagButtonText: { fontSize: 15, color: '#4A6741', fontWeight: '500' },
   selectedButtonText: { color: '#fff', fontWeight: 'bold' },
-  submitButton: { backgroundColor: '#007AFF', paddingVertical: 16, borderRadius: 8, alignItems: 'center', marginBottom: 8 },
+  submitButton: { backgroundColor: '#4A6741', paddingVertical: 16, borderRadius: 8, alignItems: 'center', marginBottom: 8 },
   submitButtonText: { color: '#fff', fontSize: 18, fontWeight: 'bold' },
 });
