@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, ScrollView, Image, Modal } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-
+import { getIconName } from '../../tagIcons';
+import { Ionicons } from '@expo/vector-icons';
 
 // 🔑 App.js로부터 로그인 시 킵해둔 진짜 데이터(userNickname, userEmail)를 정확히 받아옵니다.
 export default function MyProfileScreen({ onNavigate, userToken, userNickname, userEmail }) {
@@ -68,14 +69,13 @@ export default function MyProfileScreen({ onNavigate, userToken, userNickname, u
                 style={styles.bookmarkCard} 
                 onPress={() => onNavigate('NewRecommendation')}
               >
-                <Image 
-                  source={{ 
-                    uri: typeof fav.placeId === 'object' && fav.placeId.imageUrl 
-                          ? fav.placeId.imageUrl 
-                          : 'https://via.placeholder.com/150' // 이미지 없을 때 기본 이미지
-                  }} 
-                  style={styles.cardImage} 
-                />
+                <View style={styles.cardIconBox}>
+    <Ionicons 
+       name={getIconName(fav.placeId?.hashtags || [fav.placeId?.category])} 
+       size={30} 
+       color="#4A6741" 
+    />
+  </View>
                 {/* 🌟 placeId가 객체일 경우를 대비해 처리 */}
                 <Text style={styles.cardName} numberOfLines={1}>
                   {typeof fav.placeId === 'object' ? fav.placeId.name : '장소 정보 없음'}
@@ -162,7 +162,15 @@ const styles = StyleSheet.create({
   moreText: { fontSize: 13, color: '#4A6741', fontWeight: '600' },
   horizontalScroll: { paddingRight: 20 },
   bookmarkCard: { width: 130, backgroundColor: '#fff', borderRadius: 12, padding: 12, marginRight: 10, borderWidth: 1, borderColor: '#b5c9b0', shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.02, shadowRadius: 2, elevation: 1 },
-  cardIconBox: { width: 44, height: 44, backgroundColor: '#e8f0e5', borderRadius: 10, justifyContent: 'center', alignItems: 'center', marginBottom: 8 },
+  cardIconBox: { 
+  width: '100%',     // 카드 너비에 맞게 조정
+  height: 80,        // 기존 이미지 높이와 동일하게
+  backgroundColor: '#e8f0e5', 
+  borderRadius: 8, 
+  justifyContent: 'center', 
+  alignItems: 'center', 
+  marginBottom: 8 
+},
   cardIcon: { fontSize: 22 },
   cardImage: { width: '100%', height: 80, borderRadius: 8, marginBottom: 8, backgroundColor: '#e8f0e5' },
   cardCategory: { fontSize: 11, color: '#4A6741', fontWeight: '700', marginBottom: 2 },
