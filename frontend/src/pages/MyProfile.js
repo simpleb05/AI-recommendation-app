@@ -10,6 +10,7 @@ export default function MyProfileScreen({ onNavigate, userToken, userNickname, u
   const [myFavorites, setMyFavorites] = useState([]);
 
   // 🌟 서버에서 즐겨찾기 목록 불러오기
+  useEffect(() => {
     const fetchMyFavorites = async () => {
       try {
         const response = await fetch('http://10.0.2.2:5000/api/favorites', {
