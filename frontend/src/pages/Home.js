@@ -6,36 +6,12 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 export default function HomeScreen({ onNavigate, userToken, userNickname }) {
   // 로딩 상태 및 에러 상태 관리
   const [isLoading, setIsLoading] = useState(true);
-  
+  const [recommendationList, setRecommendationList] = useState([]);
+
   // 🌟 [수정] App.js에서 넘겨받은 진짜 닉네임을 초기값으로 세팅하여 데이터 유실 방지!
   const [nickname, setNickname] = useState(userNickname || '사용자');
   const [userTags, setUserTags] = useState([]);
-  
-  const [feedbacks, setFeedbacks] = useState({});
-  // 추천 플레이스 데이터 (우선 기존 더미를 기본값으로 유지하고 향후 AI 연동 시 활용 가능)
-  const [recommendationList, setRecommendationList] = useState([
-    {
-      id: 1,
-      title: '숲속 감성 카페 "모퉁이"',
-      distance: '1.2 km',
-      reason: '🌲 [감성 있는], [조용한] 분위기에 딱 맞는 아늑한 공간',
-      imageUrl: 'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=300&auto=format&fit=crop&q=60'
-    },
-    {
-      id: 2,
-      title: '네온 레이싱 카트장',
-      distance: '3.5 km',
-      reason: '🏎️ [활동적인], [활기찬] 에너지를 발산할 스릴 스팟',
-      imageUrl: 'https://images.unsplash.com/photo-1568605117036-5fe5e7bab0b7?w=300&auto=format&fit=crop&q=60'
-    },
-    {
-      id: 3,
-      title: '아날로그 레트로 오락실',
-      distance: '0.8 km',
-      reason: '🕹️ [가성비] 좋게 즐기는 8090 실내 데이트 코스',
-      imageUrl: 'https://images.unsplash.com/photo-1511512578047-dfb367046420?w=300&auto=format&fit=crop&q=60'
-    }
-  ]);
+  const [userFeedbacks, setUserFeedbacks] = useState([]);
 
   // 🌟 화면이 켜질 때 백엔드에서 내 취향 정보(태그)를 가져오는 함수
   const fetchUserData = async () => {
@@ -77,9 +53,41 @@ export default function HomeScreen({ onNavigate, userToken, userNickname }) {
     }
   };
 
+const fetchRecommendations = async () => {
+  try {
+    // 🌟 핵심: URL에 ?source=google 같은 파라미터가 절대 들어가면 안 됩니다!
+    // 무조건 DB를 먼저 타도록 기본 경로만 사용하세요.
+    const response = await fetch('http://10.0.2.2:5000/api/recommend', {
+      method: 'GET',
+      headers: { 
+        'Authorization': `Bearer ${userToken}`,
+        'Content-Type': 'application/json' 
+      }
+    });
+    
+    const data = await response.json();
+    console.log("전체 데이터 구조:", JSON.stringify(data.recommendations, null, 2));
+    // 만약 여기서도 에러가 난다면, DB에 데이터가 정말 없는 것입니다.
+    if (data.success) {
+      setRecommendationList(data.recommendations);
+    } else {
+      console.log("서버 응답 에러:", data.message);
+      // 💡 여기서 에러가 나면, 서버가 구글 API를 호출하다 실패한 것입니다.
+    }
+  } catch (error) {
+    console.error("통신 실패:", error);
+  }
+};
+
+
   useEffect(() => {
   if (userToken) {
-    fetchUserData();
+    const initData = async () => {
+      await fetchUserData();      // 유저 태그 불러오기
+      await fetchRecommendations(); 
+      await fetchFeedbacks();
+    };
+    initData();
   }
 }, [userToken]);
 
@@ -90,13 +98,58 @@ export default function HomeScreen({ onNavigate, userToken, userNickname }) {
     }
   }, [userNickname]);
 
-  const handleFeedback = (placeId, type) => {
-    setFeedbacks(prev => ({
-      ...prev,
-      [placeId]: prev[placeId] === type ? null : type
-    }));
-  };
+  const fetchFeedbacks = async () => {
+  try {
+    const response = await fetch('http://10.0.2.2:5000/api/feedback', {
+      headers: { 'Authorization': `Bearer ${userToken}` }
+    });
+    const data = await response.json();
+    if (data.success) {
+      setUserFeedbacks(data.feedbacks); // 받아온 피드백 배열 저장
+    }
+  } catch (error) {
+    console.error("피드백 로드 실패:", error);
+  }
+};
 
+const sendFeedbackToServer = async (targetId, feedbackType) => {
+  // targetId가 구글 ID(ChIJ...)라면 24자리 가짜 ObjectId로 변환해서 보냅니다.
+  // 서버가 이 변환된 값을 보고 원래 구글 ID로 매핑할 수 있게 하거나,
+  // 최소한 "Cast Error"는 피하게 만드는 임시 방편입니다.
+  
+  // ChIJ... 로 시작하는 ID를 24자리의 16진수 형태로 변환 (임시)
+  const fakeObjectId = targetId
+    .replace(/[^a-fA-F0-9]/g, '') // 영문/숫자만 남김
+    .padEnd(24, '0')             // 부족하면 뒤를 0으로 채움
+    .substring(0, 24);           // 정확히 24자로 자름
+
+  try {
+    const response = await fetch('http://10.0.2.2:5000/api/feedback', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${userToken}`
+      },
+      body: JSON.stringify({ 
+        placeId: fakeObjectId, // 서버가 원하는 필드명은 유지
+        originalGoogleId: targetId, // 서버가 혹시 참고할지도 모르는 원본 ID
+        feedback: feedbackType 
+      })
+    });
+
+    const result = await response.json();
+    console.log("서버 응답:", result);
+
+    if (result.success) {
+      //Alert.alert("성공", "피드백 반영 완료!");
+      fetchFeedbacks();
+    } else {
+      //Alert.alert("저장 실패", result.message || "알 수 없는 에러");
+    }
+  } catch (error) {
+    console.error("통신 에러:", error);
+  }
+};
   const handleRefresh = () => {
     setRecommendationList(prev => [...prev].reverse());
   };
@@ -176,47 +229,77 @@ export default function HomeScreen({ onNavigate, userToken, userNickname }) {
           <Text style={styles.mainTitle}>AI 추천 놀거리 Top 3</Text>
         </View>
 
-        {/* 6. 가로 배치 컴팩트 추천 리스트 */}
-        <View style={styles.listContainer}>
-          {recommendationList.map((item, index) => (
-            <View key={item.id} style={styles.rowCard}>
-              
-              <View style={styles.imageWrapper}>
-                <Image source={{ uri: item.imageUrl }} style={styles.rowCardImage} />
-                <View style={styles.rowRankBadge}>
-                  <Text style={styles.rowRankText}>{index + 1}</Text>
-                </View>
-              </View>
-              
-              <View style={styles.rowCardContent}>
-                <View style={styles.rowLocationGroup}>
-                  <Text style={styles.rowPlaceTitle} numberOfLines={1}>{item.title}</Text>
-                  <Text style={styles.rowDistanceText}>{item.distance}</Text>
-                </View>
-                
-                <Text style={styles.rowReasonText} numberOfLines={2}>{item.reason}</Text>
+  <View style={styles.listContainer}>
+  {recommendationList.slice(0, 3).map((item, index) => {
+    const place = item?.place || item;
+    const dbPlaceId = place._id || place.googlePlaceId || place.id;
 
-                <View style={styles.rowFeedbackGroup}>
-                  <TouchableOpacity 
-                    style={[styles.miniFeedbackButton, feedbacks[item.id] === 'like' && styles.feedbackLikeActive]} 
-                    onPress={() => handleFeedback(item.id, 'like')}
-                  >
-                    <Text style={[styles.miniFeedbackText, feedbacks[item.id] === 'like' && styles.textActive]}>👍 좋음</Text>
-                  </TouchableOpacity>
+    if (!dbPlaceId) return null;
 
-                  <TouchableOpacity 
-                    style={[styles.miniFeedbackButton, feedbacks[item.id] === 'dislike' && styles.feedbackDislikeActive]} 
-                    onPress={() => handleFeedback(item.id, 'dislike')}
-                  >
-                    <Text style={[styles.miniFeedbackText, feedbacks[item.id] === 'dislike' && styles.textActive]}>👎 별로</Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-
-            </View>
-          ))}
+    return (
+      <View key={dbPlaceId} style={styles.rowCard}>
+        <View style={styles.imageWrapper}>
+          <Image source={{ uri: place.photoUrl || 'https://via.placeholder.com/150' }} style={styles.rowCardImage} />
+          <View style={styles.rowRankBadge}><Text style={styles.rowRankText}>{index + 1}</Text></View>
         </View>
 
+        <View style={styles.rowCardContent}>
+          <Text style={styles.rowPlaceTitle}>{place.name}</Text>
+          <Text style={styles.rowReasonText}>{item.reason || "취향에 맞는 장소입니다."}</Text>
+
+          <View style={styles.rowFeedbackGroup}>
+        <TouchableOpacity 
+          style={[
+            styles.miniFeedbackButton, 
+            // ?. 를 사용하여 f.placeId가 null이더라도 에러가 안 나게 만듦
+            userFeedbacks.some(f => f.placeId?._id === dbPlaceId && f.feedback === 'like') && styles.feedbackLikeActive
+          ]}
+          onPress={async () => {
+            // 1. 낙관적 업데이트: 즉시 UI 변경
+            const newFeedback = { placeId: { _id: dbPlaceId }, feedback: 'like' };
+            setUserFeedbacks(prev => [...prev.filter(f => f.placeId?._id !== dbPlaceId), newFeedback]);
+
+            // 2. 서버 통신
+            const success = await sendFeedbackToServer(dbPlaceId, 'like');
+            
+           if (success) {
+              console.log("피드백 서버 반영 성공! UI 상태 유지 중...");
+              // fetchFeedbacks(); // <--- 이 줄을 주석 처리하거나 지우세요!
+            } else {
+              // 서버 저장이 실패했을 때만 원래 서버 상태로 되돌립니다.
+              //Alert.alert("알림", "피드백 저장에 실패했습니다.");
+              fetchFeedbacks(); 
+            }
+          }}
+        >
+          <Text style={[
+          styles.miniFeedbackText, 
+          userFeedbacks.some(f => f.placeId?._id === dbPlaceId && f.feedback === 'like') && styles.activeText
+        ]}>👍 좋아요</Text>
+        </TouchableOpacity>
+            
+      <TouchableOpacity 
+        style={[
+          styles.miniFeedbackButton, 
+          // 동일하게 ?. 적용
+          userFeedbacks.some(f => f.placeId?._id === dbPlaceId && f.feedback === 'dislike') && styles.feedbackDislikeActive
+        ]}
+        onPress={async () => {
+          await sendFeedbackToServer(dbPlaceId, 'dislike');
+          fetchFeedbacks();
+        }}
+      >
+        <Text style={[
+          styles.miniFeedbackText, 
+          userFeedbacks.some(f => f.placeId?._id === dbPlaceId && f.feedback === 'dislike') && styles.activeText
+  ]}>👎 별로예요</Text>
+      </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    );
+  })}
+</View>
       </ScrollView>
     </SafeAreaView>
   );
@@ -254,6 +337,7 @@ const styles = StyleSheet.create({
   navigateNewButtonText: { color: '#fff', fontSize: 13, fontWeight: 'bold' },
   titleZone: { marginBottom: 10, paddingLeft: 2 },
   mainTitle: { fontSize: 19, fontWeight: 'bold', color: '#111' },
+  
   listContainer: { marginBottom: 10 },
   rowCard: { flexDirection: 'row', backgroundColor: '#fff', borderRadius: 12, padding: 10, marginBottom: 10, borderWidth: 1, borderColor: '#eef0f2', shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.04, shadowRadius: 2, elevation: 1, height: 105 },
   imageWrapper: { position: 'relative', width: 85, height: 85 },
@@ -261,14 +345,25 @@ const styles = StyleSheet.create({
   rowRankBadge: { position: 'absolute', top: 4, left: 4, backgroundColor: 'rgba(0, 122, 255, 0.9)', width: 18, height: 18, borderRadius: 9, justifyContent: 'center', alignItems: 'center' },
   rowRankText: { color: '#fff', fontSize: 11, fontWeight: 'bold' },
   rowCardContent: { flex: 1, marginLeft: 12, justifyContent: 'space-between' },
-  rowLocationGroup: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   rowPlaceTitle: { fontSize: 15, fontWeight: 'bold', color: '#111', flex: 1, marginRight: 4 },
-  rowDistanceText: { fontSize: 12, fontWeight: '700', color: '#ff3b30' },
   rowReasonText: { fontSize: 12, color: '#666', lineHeight: 16 },
+  
   rowFeedbackGroup: { flexDirection: 'row', marginTop: 2 },
   miniFeedbackButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#f8f9fa', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 4, borderWidth: 1, borderColor: '#e9ecef', marginRight: 6 },
   miniFeedbackText: { fontSize: 11, color: '#495057', fontWeight: '500' },
-  feedbackLikeActive: { backgroundColor: '#E8F5E9', borderColor: '#4CAF50' },
-  feedbackDislikeActive: { backgroundColor: '#FFEBEE', borderColor: '#F44336' },
-  textActive: { color: '#111', fontWeight: 'bold' },
+  
+  // 🌟 활성화 시 스타일 (배경색과 테두리색을 동시에 변경)
+  feedbackLikeActive: { 
+    backgroundColor: '#E8F5E9', 
+    borderColor: '#4CAF50' 
+  },
+  feedbackDislikeActive: { 
+    backgroundColor: '#FFEBEE', 
+    borderColor: '#F44336' 
+  },
+  // 활성화 시 텍스트 스타일
+  activeText: {
+    color: '#111',
+    fontWeight: 'bold',
+  }
 });
