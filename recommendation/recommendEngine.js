@@ -42,8 +42,7 @@ function makeReason(placeHashtags, userPreference) {
 function recommendPlaces(places, userPreference) {
   return places
     .map((place) => calculateScore(place, userPreference))
-    .sort((a, b) => b.score - a.score)
-    .slice(0, 3);
+    .sort((a, b) => b.score - a.score);
 }
 
 module.exports = { recommendPlaces };

@@ -23,6 +23,8 @@ const getRecommendations = async (req, res) => {
     // DB 추천을 보고 싶을 때만 ?source=database 사용
     const forceGoogle = req.query.source !== "database";
 
+    const limit = Number(req.query.limit) || 3;
+
     const keyword = req.query.keyword || activityType || "카페";
     const selectedMoodTag = req.query.moodTag || moodTag;
 
@@ -75,7 +77,7 @@ const getRecommendations = async (req, res) => {
       filter.priceRange = budgetRange;
     }
 
-    let places = await Place.find(filter).limit(3);
+    let places = await Place.find(filter).limit(limit);
 
     // 기본은 DB 추천 건너뛰고 Google Places 추천 실행
     if (forceGoogle) {
@@ -179,7 +181,7 @@ const getRecommendations = async (req, res) => {
         longitude,
       },
       keyword,
-      recommendations,
+      recommendations: recommendations.slice(0, limit),
     });
   } catch (error) {
     return res.status(500).json({
