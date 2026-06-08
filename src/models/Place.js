@@ -19,6 +19,7 @@ const placeSchema = new mongoose.Schema({
 
   // Google Places 정보
   googlePlaceId: { type: String, unique: true, sparse: true },
+  rating: { type: Number, default: 0 },
   userRatingsTotal: { type: Number, default: 0 },
   types: [{ type: String }],
 
