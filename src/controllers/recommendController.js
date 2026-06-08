@@ -19,7 +19,9 @@ const getRecommendations = async (req, res) => {
 
     const { activityType, moodTag, budgetRange } = user.preference;
 
-    const forceGoogle = req.query.source === "google";
+    // 기본은 Google Places 추천 사용
+    // DB 추천을 보고 싶을 때만 ?source=database 사용
+    const forceGoogle = req.query.source !== "database";
 
     const keyword = req.query.keyword || activityType || "카페";
     const selectedMoodTag = req.query.moodTag || moodTag;
@@ -75,15 +77,16 @@ const getRecommendations = async (req, res) => {
 
     let places = await Place.find(filter).limit(3);
 
-    // source=google이면 DB 추천 건너뛰기
+    // 기본은 DB 추천 건너뛰고 Google Places 추천 실행
     if (forceGoogle) {
       places = [];
     }
 
-    // 1) DB에 장소가 있으면 피드백 반영 DB 추천 사용
+    // 1) ?source=database일 때만 피드백 반영 DB 추천 사용
     if (places.length > 0) {
       const recommendations = places.map((place) => ({
         id: place._id,
+        googlePlaceId: place.googlePlaceId,
         name: place.name,
         category: place.category,
         moodTag: place.moodTag,
@@ -93,12 +96,17 @@ const getRecommendations = async (req, res) => {
         longitude: place.longitude,
         priceRange: place.priceRange,
         openingHours: place.openingHours,
-        photoUrl: place.photoUrl,
+        photoUrl: place.photoUrl || null,
         description: place.description,
-        isOpen: null,
-        hashtags: [place.category, place.moodTag].filter(Boolean),
-        score: null,
-        reason: `회원님의 선호 활동(${activityType || "다양한 활동"})과 분위기(${moodTag || "다양한 분위기"})를 반영한 추천입니다.`,
+        isOpen: place.isOpen ?? null,
+        hashtags:
+          place.hashtags && place.hashtags.length > 0
+            ? place.hashtags
+            : [place.category, place.moodTag].filter(Boolean),
+        score: place.score ?? null,
+        reason:
+          place.reason ||
+          `회원님의 선호 활동(${activityType || "다양한 활동"})과 분위기(${moodTag || "다양한 분위기"})를 반영한 추천입니다.`,
       }));
 
       return res.json({
@@ -108,7 +116,7 @@ const getRecommendations = async (req, res) => {
       });
     }
 
-    // 2) DB에 장소가 없거나 source=google이면 현재 위치 기반 Google Places 추천
+    // 2) 기본 추천: 현재 위치 기반 Google Places + 추천 엔진 사용
     const googlePlaces = await fetchPlacesByKeyword(
       keyword,
       latitude,
@@ -116,18 +124,21 @@ const getRecommendations = async (req, res) => {
     );
 
     const recommendations = recommendPlaces(googlePlaces, {
-      preferredTags: [keyword, selectedMoodTag, ...likedCategories, ...likedMoodTags].filter(Boolean),
+      preferredTags: [
+        keyword,
+        selectedMoodTag,
+        ...likedCategories,
+        ...likedMoodTags,
+      ].filter(Boolean),
       latitude,
       longitude,
     });
-    
+
     // 추천 결과 DB 저장
     await Promise.all(
       recommendations.map(async (place) => {
         await Place.findOneAndUpdate(
-          {
-            googlePlaceId: place.id,
-          },
+          { googlePlaceId: place.id },
           {
             googlePlaceId: place.id,
             name: place.name,
@@ -143,6 +154,8 @@ const getRecommendations = async (req, res) => {
 
             types: place.types || [],
             isOpen: place.isOpen,
+
+            photoUrl: place.photoUrl || null,
 
             hashtags: place.hashtags || [],
             score: place.score || 0,
