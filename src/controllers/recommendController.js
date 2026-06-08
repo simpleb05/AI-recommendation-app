@@ -19,9 +19,6 @@ const getRecommendations = async (req, res) => {
 
     const { activityType, moodTag, budgetRange } = user.preference;
 
-    console.log("activityType:", activityType);
-    console.log("moodTag:", moodTag);
-
     // 기본은 Google Places 추천 사용
     // DB 추천을 보고 싶을 때만 ?source=database 사용
     const forceGoogle = req.query.source !== "database";
