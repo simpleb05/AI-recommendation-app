@@ -306,64 +306,52 @@ const sendFeedbackToServer = async (targetId, feedbackType) => {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f8f9fa' }, 
+  container: { flex: 1, backgroundColor: '#F1F8F1' }, 
   scrollContainer: { padding: 16, paddingBottom: 30 },
   loadingCenter: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   
-  profileHeaderBox: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#fff', padding: 12, borderRadius: 12, borderWidth: 1, borderColor: '#eef0f2', marginBottom: 10, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.02, shadowRadius: 2, elevation: 1 },
+  profileHeaderBox: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#fff', padding: 12, borderRadius: 12, borderWidth: 1, borderColor: '#b5c9b0', marginBottom: 10, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.02, shadowRadius: 2, elevation: 1 },
   profileRow: { flexDirection: 'row', alignItems: 'center' },
-  profileImage: { width: 40, height: 40, borderRadius: 20, marginRight: 12, backgroundColor: '#eee' },
+  profileImage: { width: 40, height: 40, borderRadius: 20, marginRight: 12, backgroundColor: '#e8f0e5' },
   profileTextBox: { justifyContent: 'center' },
-  profileName: { fontSize: 15, fontWeight: 'bold', color: '#111' },
-  myPageLinkText: { fontSize: 12, color: '#868e96', marginTop: 2 },
+  profileName: { fontSize: 15, fontWeight: 'bold', color: '#4A6741' },
+  myPageLinkText: { fontSize: 12, color: '#6B7F5E', marginTop: 2 },
   
-  moodBannerButton: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#E3F2FD', padding: 14, borderRadius: 14, borderWidth: 1, borderColor: '#BBDEFB', marginBottom: 16, shadowColor: '#007AFF', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 4, elevation: 2 },
+  moodBannerButton: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#e8f0e5', padding: 14, borderRadius: 14, borderWidth: 1, borderColor: '#b5c9b0', marginBottom: 16, shadowColor: '#4A6741', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 4, elevation: 2 },
   moodBannerLeft: { flexDirection: 'row', alignItems: 'center', flex: 1, marginRight: 12 },
   moodBannerEmoji: { fontSize: 24, marginRight: 12 },
-  moodBannerTitle: { fontSize: 15, fontWeight: 'bold', color: '#0056b3' },
-  moodBannerSub: { fontSize: 11, color: '#007AFF', marginTop: 3, flexShrink: 1, lineHeight: 15 },
-  moodBannerBadge: { backgroundColor: '#007AFF', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 20 },
+  moodBannerTitle: { fontSize: 15, fontWeight: 'bold', color: '#4A6741' },
+  moodBannerSub: { fontSize: 11, color: '#6B7F5E', marginTop: 3, flexShrink: 1, lineHeight: 15 },
+  moodBannerBadge: { backgroundColor: '#4A6741', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 20 },
   moodBadgeText: { color: '#fff', fontSize: 11, fontWeight: 'bold' },
 
-  largeTagContainer: { backgroundColor: '#fff', padding: 14, borderRadius: 14, borderWidth: 1, borderColor: '#eef0f2', marginBottom: 12 },
-  tagSectionTitle: { fontSize: 13, fontWeight: '600', color: '#666', marginBottom: 8 },
+  largeTagContainer: { backgroundColor: '#fff', padding: 14, borderRadius: 14, borderWidth: 1, borderColor: '#b5c9b0', marginBottom: 12 },
+  tagSectionTitle: { fontSize: 13, fontWeight: '600', color: '#4A6741', marginBottom: 8 },
   tagBadgeRow: { flexDirection: 'row', flexWrap: 'wrap' },
-  largeBadge: { backgroundColor: '#E3F2FD', paddingHorizontal: 10, paddingVertical: 5, borderRadius: 6, marginRight: 4, marginBottom: 4, borderWidth: 1, borderColor: '#BBDEFB' },
-  largeBadgeText: { fontSize: 12, color: '#007AFF', fontWeight: 'bold' },
+  largeBadge: { backgroundColor: '#e8f0e5', paddingHorizontal: 10, paddingVertical: 5, borderRadius: 6, marginRight: 4, marginBottom: 4, borderWidth: 1, borderColor: '#b5c9b0' },
+  largeBadgeText: { fontSize: 12, color: '#4A6741', fontWeight: 'bold' },
   controlButtonGroup: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 18 },
-  refreshButton: { flex: 1, backgroundColor: '#fff', paddingVertical: 12, borderRadius: 10, alignItems: 'center', marginRight: 6, borderWidth: 1, borderColor: '#007AFF' },
-  refreshButtonText: { color: '#007AFF', fontSize: 13, fontWeight: 'bold' },
-  navigateNewButton: { flex: 1, backgroundColor: '#007AFF', paddingVertical: 12, borderRadius: 10, alignItems: 'center', marginLeft: 6 },
+  refreshButton: { flex: 1, backgroundColor: '#fff', paddingVertical: 12, borderRadius: 10, alignItems: 'center', marginRight: 6, borderWidth: 1, borderColor: '#4A6741' },
+  refreshButtonText: { color: '#4A6741', fontSize: 13, fontWeight: 'bold' },
+  navigateNewButton: { flex: 1, backgroundColor: '#4A6741', paddingVertical: 12, borderRadius: 10, alignItems: 'center', marginLeft: 6 },
   navigateNewButtonText: { color: '#fff', fontSize: 13, fontWeight: 'bold' },
   titleZone: { marginBottom: 10, paddingLeft: 2 },
-  mainTitle: { fontSize: 19, fontWeight: 'bold', color: '#111' },
+  mainTitle: { fontSize: 19, fontWeight: 'bold', color: '#4A6741' },
   
   listContainer: { marginBottom: 10 },
-  rowCard: { flexDirection: 'row', backgroundColor: '#fff', borderRadius: 12, padding: 10, marginBottom: 10, borderWidth: 1, borderColor: '#eef0f2', shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.04, shadowRadius: 2, elevation: 1, height: 105 },
+  rowCard: { flexDirection: 'row', backgroundColor: '#fff', borderRadius: 12, padding: 10, marginBottom: 10, borderWidth: 1, borderColor: '#b5c9b0', shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.04, shadowRadius: 2, elevation: 1, height: 105 },
   imageWrapper: { position: 'relative', width: 85, height: 85 },
-  rowCardImage: { width: '100%', height: '100%', borderRadius: 8, backgroundColor: '#eee' },
-  rowRankBadge: { position: 'absolute', top: 4, left: 4, backgroundColor: 'rgba(0, 122, 255, 0.9)', width: 18, height: 18, borderRadius: 9, justifyContent: 'center', alignItems: 'center' },
+  rowCardImage: { width: '100%', height: '100%', borderRadius: 8, backgroundColor: '#e8f0e5' },
+  rowRankBadge: { position: 'absolute', top: 4, left: 4, backgroundColor: 'rgba(74, 103, 65, 0.9)', width: 18, height: 18, borderRadius: 9, justifyContent: 'center', alignItems: 'center' },
   rowRankText: { color: '#fff', fontSize: 11, fontWeight: 'bold' },
   rowCardContent: { flex: 1, marginLeft: 12, justifyContent: 'space-between' },
-  rowPlaceTitle: { fontSize: 15, fontWeight: 'bold', color: '#111', flex: 1, marginRight: 4 },
-  rowReasonText: { fontSize: 12, color: '#666', lineHeight: 16 },
+  rowPlaceTitle: { fontSize: 15, fontWeight: 'bold', color: '#4A6741', flex: 1, marginRight: 4 },
+  rowReasonText: { fontSize: 12, color: '#6B7F5E', lineHeight: 16 },
   
   rowFeedbackGroup: { flexDirection: 'row', marginTop: 2 },
-  miniFeedbackButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#f8f9fa', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 4, borderWidth: 1, borderColor: '#e9ecef', marginRight: 6 },
-  miniFeedbackText: { fontSize: 11, color: '#495057', fontWeight: '500' },
-  
-  // 🌟 활성화 시 스타일 (배경색과 테두리색을 동시에 변경)
-  feedbackLikeActive: { 
-    backgroundColor: '#E8F5E9', 
-    borderColor: '#4CAF50' 
-  },
-  feedbackDislikeActive: { 
-    backgroundColor: '#FFEBEE', 
-    borderColor: '#F44336' 
-  },
-  // 활성화 시 텍스트 스타일
-  activeText: {
-    color: '#111',
-    fontWeight: 'bold',
-  }
+  miniFeedbackButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#f5faf5', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 4, borderWidth: 1, borderColor: '#b5c9b0', marginRight: 6 },
+  miniFeedbackText: { fontSize: 11, color: '#4A6741', fontWeight: '500' },
+  feedbackLikeActive: { backgroundColor: '#E8F5E9', borderColor: '#4CAF50' },
+  feedbackDislikeActive: { backgroundColor: '#FFEBEE', borderColor: '#F44336' },
+  activeText: { color: '#111', fontWeight: 'bold' }
 });
