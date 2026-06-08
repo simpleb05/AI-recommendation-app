@@ -26,13 +26,22 @@ const getRecommendations = async (req, res) => {
     // DB 추천을 보고 싶을 때만 ?source=database 사용
     const forceGoogle = req.query.source !== "database";
 
-    const limit = Number(req.query.limit) || 3;
+    const limit = req.query.limit ? Number(req.query.limit) : null;
+
+    const moodTags = (req.query.moodTag || moodTag || "")
+      .split(",")
+      .map((tag) => tag.trim())
+      .filter(Boolean);
+
+    const activityKeyword =
+      req.query.keyword ||
+      (activityType && activityType !== "전체" ? activityType : null);
 
     const keyword =
-      req.query.keyword ||
-      activityType ||
-      (moodTag ? `${moodTag} 놀거리` : "놀거리");
-    const selectedMoodTag = req.query.moodTag || moodTag;
+      activityKeyword ||
+      (moodTags.length > 0 ? moodTags.join(" ") : "놀거리");
+
+    const selectedMoodTag = moodTags[0] || moodTag;
 
     const defaultLatitude = 35.2278;
     const defaultLongitude = 128.6817;
@@ -133,8 +142,8 @@ const getRecommendations = async (req, res) => {
 
     const recommendations = recommendPlaces(googlePlaces, {
       preferredTags: [
-        keyword,
-        selectedMoodTag,
+        activityKeyword,
+        ...moodTags,
         ...likedCategories,
         ...likedMoodTags,
       ].filter(Boolean),
@@ -187,7 +196,7 @@ const getRecommendations = async (req, res) => {
         longitude,
       },
       keyword,
-      recommendations: recommendations.slice(0, limit),
+      recommendations: limit ? recommendations.slice(0, limit) : recommendations,
     });
   } catch (error) {
     return res.status(500).json({
