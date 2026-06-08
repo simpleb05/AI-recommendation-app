@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, ScrollView, Image, ActivityIndicator, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context'; 
+import { getIconName } from '../../tagIcons';
+import { Ionicons } from '@expo/vector-icons';
+
 
 // 🔑 App.js로부터 userToken과 함께 로그인 성공 시 킵해둔 userNickname을 정상적으로 받아옵니다.
 export default function HomeScreen({ onNavigate, userToken, userNickname }) {
@@ -143,11 +146,14 @@ const sendFeedbackToServer = async (targetId, feedbackType) => {
     if (result.success) {
       //Alert.alert("성공", "피드백 반영 완료!");
       fetchFeedbacks();
+      return true;
     } else {
       //Alert.alert("저장 실패", result.message || "알 수 없는 에러");
+      return false;
     }
   } catch (error) {
     console.error("통신 에러:", error);
+    return false;
   }
 };
   const handleRefresh = () => {
@@ -238,10 +244,14 @@ const sendFeedbackToServer = async (targetId, feedbackType) => {
 
     return (
       <View key={dbPlaceId} style={styles.rowCard}>
-        <View style={styles.imageWrapper}>
-          <Image source={{ uri: place.photoUrl || 'https://via.placeholder.com/150' }} style={styles.rowCardImage} />
-          <View style={styles.rowRankBadge}><Text style={styles.rowRankText}>{index + 1}</Text></View>
-        </View>
+        <View style={styles.iconContainer}>
+    <Ionicons 
+       name={getIconName(place.hashtags || [place.category])} 
+       size={40} 
+       color="#666" 
+       
+    />
+  </View>
 
         <View style={styles.rowCardContent}>
           <Text style={styles.rowPlaceTitle}>{place.name}</Text>
@@ -254,23 +264,23 @@ const sendFeedbackToServer = async (targetId, feedbackType) => {
             // ?. 를 사용하여 f.placeId가 null이더라도 에러가 안 나게 만듦
             userFeedbacks.some(f => f.placeId?._id === dbPlaceId && f.feedback === 'like') && styles.feedbackLikeActive
           ]}
-          onPress={async () => {
-            // 1. 낙관적 업데이트: 즉시 UI 변경
-            const newFeedback = { placeId: { _id: dbPlaceId }, feedback: 'like' };
-            setUserFeedbacks(prev => [...prev.filter(f => f.placeId?._id !== dbPlaceId), newFeedback]);
+         onPress={async () => {
+    // 2. 낙관적 업데이트: 
+    // 기존에 있던 해당 장소 피드백은 지우고, 새로운 상태로 덮어씌웁니다.
+    const newFeedback = { placeId: { _id: dbPlaceId }, feedback: 'like' };
+    
+    setUserFeedbacks(prev => {
+        // 기존 피드백들 중에서 현재 장소 ID가 아닌 것들만 남김
+        const others = prev.filter(f => (f.placeId?._id || f.placeId) !== dbPlaceId);
+        // 거기에 좋아요 상태를 추가
+        return [...others, newFeedback];
+    });
 
-            // 2. 서버 통신
-            const success = await sendFeedbackToServer(dbPlaceId, 'like');
-            
-           if (success) {
-              console.log("피드백 서버 반영 성공! UI 상태 유지 중...");
-              // fetchFeedbacks(); // <--- 이 줄을 주석 처리하거나 지우세요!
-            } else {
-              // 서버 저장이 실패했을 때만 원래 서버 상태로 되돌립니다.
-              //Alert.alert("알림", "피드백 저장에 실패했습니다.");
-              fetchFeedbacks(); 
-            }
-          }}
+    const success = await sendFeedbackToServer(dbPlaceId, 'like');
+    if (!success) {
+      fetchFeedbacks(); // 실패 시에만 서버 상태로 복구
+    }
+  }}
         >
           <Text style={[
           styles.miniFeedbackText, 
@@ -284,10 +294,19 @@ const sendFeedbackToServer = async (targetId, feedbackType) => {
           // 동일하게 ?. 적용
           userFeedbacks.some(f => f.placeId?._id === dbPlaceId && f.feedback === 'dislike') && styles.feedbackDislikeActive
         ]}
-        onPress={async () => {
-          await sendFeedbackToServer(dbPlaceId, 'dislike');
-          fetchFeedbacks();
-        }}
+       onPress={async () => {
+    const newFeedback = { placeId: { _id: dbPlaceId }, feedback: 'dislike' };
+    
+    setUserFeedbacks(prev => {
+        const others = prev.filter(f => (f.placeId?._id || f.placeId) !== dbPlaceId);
+        return [...others, newFeedback];
+    });
+
+    const success = await sendFeedbackToServer(dbPlaceId, 'dislike');
+    if (!success) {
+      fetchFeedbacks();
+    }
+  }}
       >
         <Text style={[
           styles.miniFeedbackText, 
@@ -339,12 +358,30 @@ const styles = StyleSheet.create({
   mainTitle: { fontSize: 19, fontWeight: 'bold', color: '#4A6741' },
   
   listContainer: { marginBottom: 10 },
-  rowCard: { flexDirection: 'row', backgroundColor: '#fff', borderRadius: 12, padding: 10, marginBottom: 10, borderWidth: 1, borderColor: '#b5c9b0', shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.04, shadowRadius: 2, elevation: 1, height: 105 },
-  imageWrapper: { position: 'relative', width: 85, height: 85 },
+  rowCard: {
+    flexDirection: 'row',        // 가로로 배치 (아이콘 + 텍스트)
+    alignItems: 'center',        // 🌟 핵심: 세로 방향으로 중앙 정렬
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 10,
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: '#b5c9b0',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04,
+    shadowRadius: 2,
+    elevation: 1,
+    height: 105,                 // 고정 높이
+  },
   rowCardImage: { width: '100%', height: '100%', borderRadius: 8, backgroundColor: '#e8f0e5' },
   rowRankBadge: { position: 'absolute', top: 4, left: 4, backgroundColor: 'rgba(74, 103, 65, 0.9)', width: 18, height: 18, borderRadius: 9, justifyContent: 'center', alignItems: 'center' },
   rowRankText: { color: '#fff', fontSize: 11, fontWeight: 'bold' },
-  rowCardContent: { flex: 1, marginLeft: 12, justifyContent: 'space-between' },
+  rowCardContent: {
+    flex: 1,
+    justifyContent: 'center',    // 🌟 텍스트 영역도 세로 중앙으로 정렬
+    // height: '100%',           // 필요하면 명시적으로 높이 100% 부여
+  },
   rowPlaceTitle: { fontSize: 15, fontWeight: 'bold', color: '#4A6741', flex: 1, marginRight: 4 },
   rowReasonText: { fontSize: 12, color: '#6B7F5E', lineHeight: 16 },
   
@@ -353,5 +390,17 @@ const styles = StyleSheet.create({
   miniFeedbackText: { fontSize: 11, color: '#4A6741', fontWeight: '500' },
   feedbackLikeActive: { backgroundColor: '#E8F5E9', borderColor: '#4CAF50' },
   feedbackDislikeActive: { backgroundColor: '#FFEBEE', borderColor: '#F44336' },
-  activeText: { color: '#111', fontWeight: 'bold' }
+  activeText: { color: '#111', fontWeight: 'bold' },
+
+  iconContainer: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: '#f0f0f0',
+    justifyContent: 'center',    // 컨테이너 안에서 아이콘 가로 중앙
+    alignItems: 'center',        // 컨테이너 안에서 아이콘 세로 중앙
+    marginRight: 15,
+    // 필요시 여기에 marginLeft를 살짝 줘서 왼쪽 여백 조절 가능
+  }
+
 });
