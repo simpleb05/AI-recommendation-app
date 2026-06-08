@@ -75,6 +75,7 @@ async function fetchPlacesByKeyword(keyword, latitude, longitude) {
     })
   );
 
+  console.log("places 개수:", places.length);
   return places;
 }
 
