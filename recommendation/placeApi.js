@@ -36,7 +36,7 @@ async function fetchPlacesByKeyword(keyword, latitude, longitude) {
     },
     body: JSON.stringify({
       textQuery: keyword,
-      maxResultCount: 10,
+      maxResultCount: 20,
       locationBias: {
         circle: {
           center: { latitude, longitude },
