@@ -147,6 +147,25 @@ function makeReason(placeHashtags, userPreference, place) {
 
 function recommendPlaces(places, userPreference) {
   return places
+    .filter((place) => {
+      if (
+        !userPreference.latitude ||
+        !userPreference.longitude ||
+        !place.latitude ||
+        !place.longitude
+      ) {
+        return false;
+      }
+
+      const distance = getDistance(
+        userPreference.latitude,
+        userPreference.longitude,
+        place.latitude,
+        place.longitude
+      );
+
+      return distance <= (userPreference.radius || 3000);
+    })
     .map((place) => calculateScore(place, userPreference))
     .sort((a, b) => b.score - a.score);
 }
