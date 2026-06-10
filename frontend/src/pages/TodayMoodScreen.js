@@ -57,6 +57,25 @@ export default function TodayMoodScreen({ onNavigate, userToken }) {
       return;
     }
 
+    // 2. 서버 통신용 데이터 매핑 (여기서 규격을 맞춥니다!)
+  const payload = {
+    // memberCount('1인' 등)를 서버 기준인 'SMALL'/'MEDIUM_LARGE'로 변환
+    peopleCategory: (memberCount === '1인' || memberCount === '2인') ? 'SMALL' : 'MEDIUM_LARGE',
+    
+    // budget(숫자)을 서버 기준 레벨(0~4)로 변환
+    priceLevel: (() => {
+      if (budget === 0) return 0;
+      if (budget <= 20000) return 1;
+      if (budget <= 45000) return 2;
+      if (budget <= 75000) return 3;
+      return 4;
+    })(),
+    moodTag: selectedTags.join(', '),
+    activityType: '전체'
+  };
+
+  console.log("서버로 전송하는 매핑된 데이터:", payload);
+
     try {
       const response = await fetch('http://10.0.2.2:5000/api/user/preference', {
         method: 'PUT',
@@ -64,12 +83,7 @@ export default function TodayMoodScreen({ onNavigate, userToken }) {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${userToken}`,
         },
-        body: JSON.stringify({
-          groupSize: memberCount,
-          budgetRange: `${budget.toLocaleString()}원 이하`,
-          moodTag: selectedTags.join(', '),
-          activityType: '',
-        }),
+        body: JSON.stringify(payload),
       });
 
       const data = await response.json();
