@@ -9,6 +9,7 @@ const placeSchema = new mongoose.Schema(
     address: { type: String },
     latitude: { type: Number },
     longitude: { type: Number },
+    priceRange: { type: String },
 
     openingHours: { type: String },
     photoUrl: { type: String },
