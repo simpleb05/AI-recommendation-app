@@ -49,6 +49,10 @@ const getRecommendations = async (req, res) => {
     const latitude = Number(req.query.latitude) || defaultLatitude;
     const longitude = Number(req.query.longitude) || defaultLongitude;
 
+    const radius = Number(req.query.radius) || 3000;
+    const peopleCount = Number(req.query.peopleCount) || 1;
+    const budget = req.query.budget || budgetRange || null;
+
     // 싫어요한 장소 제외
     const dislikedFeedbacks = await Feedback.find({
       userId: req.userId,
@@ -137,7 +141,8 @@ const getRecommendations = async (req, res) => {
     const googlePlaces = await fetchPlacesByKeyword(
       keyword,
       latitude,
-      longitude
+      longitude,
+      radius
     );
 
     const recommendations = recommendPlaces(googlePlaces, {
@@ -149,6 +154,9 @@ const getRecommendations = async (req, res) => {
       ].filter(Boolean),
       latitude,
       longitude,
+      radius,
+      peopleCount,
+      budget,
     });
 
     // 추천 결과 DB 저장
@@ -168,6 +176,7 @@ const getRecommendations = async (req, res) => {
 
             rating: place.rating || 0,
             userRatingsTotal: place.userRatingsTotal || 0,
+            priceLevel: place.priceLevel || null,
 
             types: place.types || [],
             isOpen: place.isOpen,

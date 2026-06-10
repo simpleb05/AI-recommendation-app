@@ -23,7 +23,7 @@ async function getPhotoUrl(photoName, apiKey) {
   return data.photoUri || null;
 }
 
-async function fetchPlacesByKeyword(keyword, latitude, longitude) {
+async function fetchPlacesByKeyword(keyword, latitude, longitude, radius = 3000) {
   const apiKey = process.env.GOOGLE_PLACES_API_KEY;
 
   const response = await fetch("https://places.googleapis.com/v1/places:searchText", {
@@ -32,7 +32,7 @@ async function fetchPlacesByKeyword(keyword, latitude, longitude) {
       "Content-Type": "application/json",
       "X-Goog-Api-Key": apiKey,
       "X-Goog-FieldMask":
-        "places.id,places.displayName,places.formattedAddress,places.rating,places.userRatingCount,places.types,places.location,places.currentOpeningHours,places.photos",
+        "places.id,places.displayName,places.formattedAddress,places.rating,places.userRatingCount,places.types,places.location,places.currentOpeningHours,places.photos,places.priceLevel",
     },
     body: JSON.stringify({
       textQuery: keyword,
@@ -40,7 +40,7 @@ async function fetchPlacesByKeyword(keyword, latitude, longitude) {
       locationBias: {
         circle: {
           center: { latitude, longitude },
-          radius: 3000,
+          radius,
         },
       },
       languageCode: "ko",
@@ -60,6 +60,8 @@ async function fetchPlacesByKeyword(keyword, latitude, longitude) {
       const photoName = place.photos?.[0]?.name || null;
       const photoUrl = await getPhotoUrl(photoName, apiKey);
 
+      console.log("priceLevel:", place.priceLevel);
+
       return {
         id: place.id,
         name: place.displayName?.text,
@@ -71,6 +73,7 @@ async function fetchPlacesByKeyword(keyword, latitude, longitude) {
         longitude: place.location?.longitude,
         isOpen: place.currentOpeningHours?.openNow ?? null,
         photoUrl,
+        priceLevel: place.priceLevel || null,
       };
     })
   );
