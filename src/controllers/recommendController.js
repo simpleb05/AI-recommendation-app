@@ -176,7 +176,7 @@ const getRecommendations = async (req, res) => {
 
             rating: place.rating || 0,
             userRatingsTotal: place.userRatingsTotal || 0,
-            priceLevel: place.priceLevel || null,
+            priceRange: place.priceLevel || null,
 
             types: place.types || [],
             isOpen: place.isOpen,
