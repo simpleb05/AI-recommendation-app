@@ -146,28 +146,32 @@ function makeReason(placeHashtags, userPreference, place) {
 }
 
 function recommendPlaces(places, userPreference) {
-  return places
+  // 1. 결과물 리스트를 변수에 먼저 담습니다.
+  const result = places
     .filter((place) => {
-      if (
-        !userPreference.latitude ||
-        !userPreference.longitude ||
-        !place.latitude ||
-        !place.longitude
-      ) {
+      if (!userPreference.latitude || !userPreference.longitude || !place.latitude || !place.longitude) {
         return false;
       }
-
       const distance = getDistance(
         userPreference.latitude,
         userPreference.longitude,
         place.latitude,
         place.longitude
       );
-
       return distance <= (userPreference.radius || 3000);
     })
     .map((place) => calculateScore(place, userPreference))
-    .sort((a, b) => b.score - a.score);
+    .sort((a, b) => {
+      if (b.score !== a.score) return b.score - a.score;
+      return (b.rating || 0) - (a.rating || 0);
+    })
+    .filter(place => place.score > 0);
+
+  // 2. return 하기 전에 로그를 찍습니다.
+  console.log("상위 점수들:", result.map(p => p.score));
+
+  // 3. 이제 반환합니다.
+  return result;
 }
 
 module.exports = { recommendPlaces };
