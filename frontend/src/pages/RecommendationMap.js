@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   StyleSheet,
   Text,
@@ -30,6 +31,16 @@ const getDistance = (coord1, coord2) => {
   return R * c;
 };
 
+const getHexId = (id) => {
+  if (!id) return '';
+  return id.toString()
+    .split('')
+    .map(c => c.charCodeAt(0).toString(16))
+    .join('')
+    .substring(0, 24)
+    .padEnd(24, '0');
+};
+
 const getPlaceId = (place) => {
   return place?._id || place?.googlePlaceId || place?.id;
 };
@@ -40,7 +51,7 @@ export default function RecommendationMapScreen({ onNavigate, userToken }) {
   const [loading, setLoading] = useState(true);
   const [selectedPlace, setSelectedPlace] = useState(null);
   const [radius, setRadius] = useState(1000);
-const [initialLocation, setInitialLocation] = useState({
+  const [initialLocation, setInitialLocation] = useState({
   latitude: 35.2278,
   longitude: 128.6817
 });
@@ -48,6 +59,19 @@ const [initialLocation, setInitialLocation] = useState({
   const [userFeedbacks, setUserFeedbacks] = useState([]);
 
   const mapRef = useRef(null);
+
+  const loadFavoritesFromStorage = async () => {
+  try {
+    const cached = await AsyncStorage.getItem('savedFavorites');
+    if (cached) {
+      const parsed = JSON.parse(cached);
+      setUserFavorites(parsed);
+      //console.log("로컬 스토리지에서 불러온 즐겨찾기:", parsed);
+    }
+  } catch (e) {
+    console.error("로컬 데이터 로드 실패", e);
+  }
+};
 
   const init = async () => {
     try {
@@ -92,42 +116,53 @@ const [initialLocation, setInitialLocation] = useState({
     }
   };
 
-  const fetchFavorites = async () => {
-    try {
-      const response = await fetch('http://10.0.2.2:5000/api/favorites', {
-        headers: {
-          Authorization: `Bearer ${userToken}`,
-        },
-      });
+const fetchFavorites = async () => {
+  try {
+    const response = await fetch('http://10.0.2.2:5000/api/favorites', {
+      headers: { Authorization: `Bearer ${userToken}` },
+    });
+    const data = await response.json();
+    console.log("원본 favorite:", data.favorites);
+    if (data.success && Array.isArray(data.favorites)) {
+      const normalizedFavorites = data.favorites
+        .filter(fav => fav && fav.placeId) // 데이터가 있는 것만 필터
+        .map(fav => {
+          // 💡 핵심: placeId가 객체면 내부에서 꺼내고, 문자열이면 그대로 사용
+          let idValue = "";
+          if (typeof fav.placeId === 'object') {
+            idValue = fav.placeId.googlePlaceId || fav.placeId._id || "";
+          } else {
+            idValue = fav.placeId; // 이미 문자열인 경우
+          }
+          
+          return getHexId(idValue);
+        });
 
-      const data = await response.json();
-      console.log('즐겨찾기 목록:', data);
-
-      if (data.success) {
-        const favoriteIds = (data.favorites || []).map((fav) =>
-          typeof fav.placeId === 'object' ? fav.placeId._id : fav.placeId
-        );
-
-        setUserFavorites(favoriteIds);
-      }
-    } catch (error) {
-      console.error('즐겨찾기 목록 로드 실패:', error);
+      const uniqueFavorites = [...new Set(normalizedFavorites)];
+      
+      setUserFavorites(uniqueFavorites);
+      await AsyncStorage.setItem('savedFavorites', JSON.stringify(uniqueFavorites));
+      //console.log("이제 모든 데이터가 들어간 배열:", uniqueFavorites);
     }
-  };
+  } catch (error) {
+    console.error('즐겨찾기 로드 실패:', error);
+  }
+};
 
-  const fetchPlaces = async () => {
+const fetchPlaces = async () => {
   if (loading) return; // 로딩 중이면 강제 종료
   setLoading(true);
-  console.log("요청 좌표 확인:", initialLocation.latitude, initialLocation.longitude);
+  //console.log("요청 좌표 확인:", initialLocation.latitude, initialLocation.longitude);
   try {
     const url = `http://10.0.2.2:5000/api/recommend?latitude=${initialLocation.latitude}&longitude=${initialLocation.longitude}&radius=${radius}`;
     const response = await fetch(url, {
       headers: { Authorization: `Bearer ${userToken}` },
     });
     const data = await response.json();
+    //console.log("서버에서 받은 전체 데이터:", data);
 
     if (data.success) {
-      console.log("피드백 시도하는 place 객체 내용:", JSON.stringify(data.recommendations, null, 2));
+      //console.log("피드백 시도하는 place 객체 내용:", JSON.stringify(data.recommendations, null, 2));
       setPlaces(data.recommendations || []);
       // 여기서 setLoading(false)를 하지 마세요! 
       // 필터링 useEffect가 끝난 후 해제되도록 위에서 처리했습니다.
@@ -139,8 +174,23 @@ const [initialLocation, setInitialLocation] = useState({
 };
 
 useEffect(() => {
-    init(); // 👈 여기서 실행하세요!
-  }, []);
+    // 💡 화면이 이 컴포넌트로 전환될 때마다 데이터 갱신
+    // onNavigate가 바뀌거나 currentScreen 상태가 상위에서 전달된다면
+    // 그것을 감시하는 것이 가장 좋습니다.
+    fetchFavorites();
+    fetchFeedbacks();
+  }, [userToken]); // userToken이 유지된다면 이 값이 바뀔 일은 거의 없으므로 안전합니다.
+
+// 2. [유지] 앱 실행 시 초기화 (기존 코드 그대로)
+useEffect(() => {
+  const initAll = async () => {
+    loadFavoritesFromStorage();
+    await init();
+    await fetchFavorites();
+    await fetchFeedbacks();
+  };
+  initAll();
+}, []);
 
 useEffect(() => {
     if (initialLocation && initialLocation.latitude !== 35.2278) {
@@ -169,50 +219,54 @@ useEffect(() => {
     console.log("필터링 완료");
   }, [places, radius, initialLocation?.latitude]);
 
-  const toggleFavorite = async (placeId) => {
-    if (!placeId) return;
+const toggleFavorite = async (placeInput) => {
+    console.log(
+    "즐겨찾기 누른 장소:",
+    JSON.stringify(placeInput, null, 2)
+  );
+  const googlePlaceId = (typeof placeInput === 'object') ? (placeInput.id || placeInput.googlePlaceId) : placeInput;
+  const hexId = getHexId(googlePlaceId);
+  const isAlreadyFavorite = userFavorites.includes(hexId);
 
-    const isCurrentlyFavorite = userFavorites.includes(placeId);
-    const method = isCurrentlyFavorite ? 'DELETE' : 'POST';
+  try {
+    const response = await fetch(isAlreadyFavorite 
+      ? `http://10.0.2.2:5000/api/favorites/${hexId}` 
+      : `http://10.0.2.2:5000/api/favorites`, {
+      method: isAlreadyFavorite ? 'DELETE' : 'POST',
+      headers: {
+        'Authorization': `Bearer ${userToken}`,
+        'Content-Type': 'application/json'
+      },
+      ...(isAlreadyFavorite ? {} : { body: JSON.stringify({ googlePlaceId }) })
+    });
 
-    const url = isCurrentlyFavorite
-      ? `http://10.0.2.2:5000/api/favorites/${placeId}`
-      : 'http://10.0.2.2:5000/api/favorites';
+    const result = await response.json();
 
-    try {
-      const response = await fetch(url, {
-        method,
-        headers: {
-          Authorization: `Bearer ${userToken}`,
-          'Content-Type': 'application/json',
-        },
-        body: isCurrentlyFavorite ? null : JSON.stringify({ placeId }),
+    if (response.ok || result.message === "이미 저장된 장소입니다.") {
+      // 💡 딱 한 번만 상태를 업데이트합니다.
+      setUserFavorites(prev => {
+        // 이미 저장된 장소라면 삭제(filter), 아니라면 추가(Set으로 중복 방지)
+        const next = (isAlreadyFavorite && result.message !== "이미 저장된 장소입니다.")
+          ? prev.filter(id => id !== hexId)
+          : [...new Set([...prev, hexId])];
+          
+        // 로컬 스토리지 동기화
+        AsyncStorage.setItem('savedFavorites', JSON.stringify(next));
+        return next;
       });
-
-      const text = await response.text();
-
-      let data;
-      try {
-        data = JSON.parse(text);
-      } catch (e) {
-        data = { success: true };
-      }
-
-      if (data.success) {
-        if (isCurrentlyFavorite) {
-          setUserFavorites((prev) => prev.filter((id) => id !== placeId));
-          alert('즐겨찾기에서 제거되었습니다.');
-        } else {
-          setUserFavorites((prev) => [...prev, placeId]);
-          alert('즐겨찾기에 추가되었습니다.');
-        }
-      } else {
-        alert(data.message || '오류 발생');
-      }
-    } catch (error) {
-      console.error('즐겨찾기 토글 실패:', error);
+      
+      alert(isAlreadyFavorite && result.message !== "이미 저장된 장소입니다." 
+        ? "즐겨찾기가 해제되었습니다." 
+        : "즐겨찾기에 추가되었습니다!");
+    } else {
+      throw new Error(result.message || "서버 작업 실패");
     }
-  };
+  } catch (error) {
+    console.error("toggleFavorite 처리 중 에러:", error);
+    alert("작업을 처리할 수 없습니다.");
+  }
+};
+
 
 const toggleReaction = async (place, feedbackValue) => {
   const googlePlaceId = place.id || place.googlePlaceId;
@@ -251,6 +305,20 @@ const toggleReaction = async (place, feedbackValue) => {
   }
 };
 
+useEffect(() => {
+  if (selectedPlace) {
+    const currentHexId = getHexId(selectedPlace.id || selectedPlace.googlePlaceId);
+    const isFav = userFavorites.includes(currentHexId);
+    
+    // console.log("--- 렌더링 체크 ---");
+    // console.log("선택된 장소:", selectedPlace.name);
+    // console.log("비교 대상 ID:", currentHexId);
+    // console.log("목록에 포함됨?:", isFav);
+    // console.log("현재 userFavorites 배열 전체 내용:", JSON.stringify(userFavorites));
+    // console.log("하트 UI:", isFav ? '❤️' : '🤍');
+  }
+}, [userFavorites, selectedPlace]);
+
   const moveToPlace = (place) => {
     setSelectedPlace(place);
 
@@ -266,7 +334,30 @@ const toggleReaction = async (place, feedbackValue) => {
   };
 
   const selectedPlaceId = getPlaceId(selectedPlace);
+  const currentHexId = selectedPlaceId 
+  ? selectedPlaceId.split('').map(c => c.charCodeAt(0).toString(16)).join('').substring(0, 24).padEnd(24, '0')
+  : null;
 
+  // 2. 즐겨찾기 상태 확인
+const isFavorite = React.useMemo(() => {
+  if (!selectedPlace) return false;
+  console.log(
+    "selectedPlace id들",
+    selectedPlace?._id,
+    selectedPlace?.id,
+    selectedPlace?.googlePlaceId
+  );
+
+  const hexId = getHexId(
+    selectedPlace?.id ||
+    selectedPlace?.googlePlaceId ||
+    selectedPlace?._id
+  );
+
+  console.log("생성된 hexId:", hexId);
+  console.log("userFavorites:", userFavorites);
+  return userFavorites.includes(hexId);
+}, [userFavorites, selectedPlace]);
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
@@ -364,11 +455,14 @@ const toggleReaction = async (place, feedbackValue) => {
               <View style={styles.detailHeader}>
                 <Text style={styles.placeName}>{selectedPlace.name}</Text>
 
-                <TouchableOpacity onPress={() => toggleFavorite(selectedPlaceId)}>
-                  <Text style={{ fontSize: 28 }}>
-                    {userFavorites.includes(selectedPlaceId) ? '❤️' : '🤍'}
-                  </Text>
-                </TouchableOpacity>
+              <TouchableOpacity onPress={() => toggleFavorite(selectedPlace)}>
+                <Text 
+                key={isFavorite ? 'heart-red' : 'heart-white'} // 💡 이 key가 필수입니다!
+                style={{ fontSize: 24 }}
+              >
+                  {isFavorite ? '❤️' : '🤍'}
+                </Text>
+              </TouchableOpacity>
               </View>
 
               <View style={styles.infoRow}>
