@@ -71,14 +71,18 @@ export default function MyProfileScreen({ onNavigate, userToken, userNickname, u
               >
                 <View style={styles.cardIconBox}>
     <Ionicons 
-       name={getIconName(fav.placeId?.hashtags || [fav.placeId?.category])} 
+       name={getIconName(
+  fav?.placeId?.hashtags ??
+  (fav?.placeId?.category
+    ? [fav.placeId.category]
+    : [])
+)} 
        size={30} 
        color="#4A6741" 
     />
   </View>
-                {/* 🌟 placeId가 객체일 경우를 대비해 처리 */}
                 <Text style={styles.cardName} numberOfLines={1}>
-                  {typeof fav.placeId === 'object' ? fav.placeId.name : '장소 정보 없음'}
+                  {fav?.placeId?.name || '장소 정보 없음'}
                 </Text>
               </TouchableOpacity>
             ))
