@@ -1,20 +1,49 @@
 const Favorite = require("../models/Favorite");
+const Place = require("../models/Place");
 
 // 즐겨찾기 추가
 const addFavorite = async (req, res) => {
   try {
-    const { placeId } = req.body;
+    const { googlePlaceId } = req.body;
 
-    // 중복 확인
-    const existing = await Favorite.findOne({ userId: req.userId, placeId });
-    if (existing) {
-      return res.status(400).json({ success: false, message: "이미 저장된 장소입니다." });
+    const place = await Place.findOne({
+      googlePlaceId
+    });
+
+    if (!place) {
+      return res.status(404).json({
+        success: false,
+        message: "해당 장소를 찾을 수 없습니다."
+      });
     }
 
-    await Favorite.create({ userId: req.userId, placeId });
-    res.status(201).json({ success: true, message: "즐겨찾기 추가 완료" });
+    const existing = await Favorite.findOne({
+      userId: req.userId,
+      placeId: place._id
+    });
+
+    if (existing) {
+      return res.status(400).json({
+        success: false,
+        message: "이미 저장된 장소입니다."
+      });
+    }
+
+    await Favorite.create({
+      userId: req.userId,
+      placeId: place._id
+    });
+
+    res.status(201).json({
+      success: true,
+      message: "즐겨찾기 추가 완료"
+    });
+
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
   }
 };
 
