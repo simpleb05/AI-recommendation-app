@@ -3,7 +3,8 @@ import { StyleSheet, Text, View, TouchableOpacity, ScrollView, Image, ActivityIn
 import { SafeAreaView } from 'react-native-safe-area-context'; 
 import { getIconName } from '../../tagIcons';
 import { Ionicons } from '@expo/vector-icons';
-
+// 💡 현재 위치 조회를 위해 Expo Location 라이브러리를 추가합니다.
+import * as Location from 'expo-location';
 
 // 🔑 App.js로부터 userToken과 함께 로그인 성공 시 킵해둔 userNickname을 정상적으로 받아옵니다.
 export default function HomeScreen({ onNavigate, userToken, userNickname }) {
@@ -16,11 +17,10 @@ export default function HomeScreen({ onNavigate, userToken, userNickname }) {
   const [userTags, setUserTags] = useState([]);
   const [userFeedbacks, setUserFeedbacks] = useState([]);
   const profileImage = require('../../assets/profile.png');
+
   // 🌟 화면이 켜질 때 백엔드에서 내 취향 정보(태그)를 가져오는 함수
   const fetchUserData = async () => {
     try {
-      setIsLoading(true);
-
       // 백엔드 주소 규칙: /api/user/preference
       const response = await fetch('http://10.0.2.2:5000/api/user/preference', {
         method: 'GET',
@@ -51,48 +51,68 @@ export default function HomeScreen({ onNavigate, userToken, userNickname }) {
       }
     } catch (error) {
       console.error('홈 화면 유저 데이터 통신 에러:', error);
-    } finally {
-      setIsLoading(false);
     }
   };
 
-const fetchRecommendations = async () => {
-  try {
-    // 🌟 핵심: URL에 ?source=google 같은 파라미터가 절대 들어가면 안 됩니다!
-    // 무조건 DB를 먼저 타도록 기본 경로만 사용하세요.
-    const response = await fetch('http://10.0.2.2:5000/api/recommend', {
-      method: 'GET',
-      headers: { 
-        'Authorization': `Bearer ${userToken}`,
-        'Content-Type': 'application/json' 
-      }
-    });
-    
-    const data = await response.json();
-    console.log("전체 데이터 구조:", JSON.stringify(data.recommendations, null, 2));
-    // 만약 여기서도 에러가 난다면, DB에 데이터가 정말 없는 것입니다.
-    if (data.success) {
-      setRecommendationList(data.recommendations);
-    } else {
-      console.log("서버 응답 에러:", data.message);
-      // 💡 여기서 에러가 나면, 서버가 구글 API를 호출하다 실패한 것입니다.
-    }
-  } catch (error) {
-    console.error("통신 실패:", error);
-  }
-};
+  // 🌟 [수정] 현재 위치를 기반으로 백엔드 API에 위도, 경도, 개수 제한(limit=3)을 실어 요청하는 함수
+  const fetchRecommendations = async () => {
+    try {
+      // 1. 휴대폰 기기의 GPS 위치 권한 요청
+      let { status } = await Location.requestForegroundPermissionsAsync();
+      
+      // 기본값 설정 (만약 권한 거부 시 사용할 창원대학교 중심 좌표)
+      let latitude = 35.2278;
+      let longitude = 128.6817;
 
+      if (status === 'granted') {
+        // 2. 실시간 현재 위치 좌표 가져오기
+        let location = await Location.getCurrentPositionAsync({
+          accuracy: Location.Accuracy.Balanced,
+        });
+        latitude = location.coords.latitude;
+        longitude = location.coords.longitude;
+        console.log("현재 실시간 위치 정보 탐색 완료:", latitude, longitude);
+      } else {
+        console.log("위치 권한이 거부되어 기본 좌표(창원대)로 추천 요청을 보냅니다.");
+      }
+
+      // 3. 백엔드 컨트롤러 스펙에 맞춰 쿼리 파라미터(?latitude=...&longitude=...&limit=3) 탑재하여 fetch 전송
+      const response = await fetch(
+        `http://10.0.2.2:5000/api/recommend?latitude=${latitude}&longitude=${longitude}&limit=3`,
+        {
+          method: 'GET',
+          headers: { 
+            'Authorization': `Bearer ${userToken}`,
+            'Content-Type': 'application/json' 
+          }
+        }
+      );
+      
+      const data = await response.json();
+      console.log("추천 데이터 수신 완료:", JSON.stringify(data.recommendations, null, 2));
+      
+      if (data.success) {
+        setRecommendationList(data.recommendations);
+      } else {
+        console.log("서버 응답 에러:", data.message);
+      }
+    } catch (error) {
+      console.error("추천 데이터 통신 실패:", error);
+    }
+  };
 
   useEffect(() => {
-  if (userToken) {
-    const initData = async () => {
-      await fetchUserData();      // 유저 태그 불러오기
-      await fetchRecommendations(); 
-      await fetchFeedbacks();
-    };
-    initData();
-  }
-}, [userToken]);
+    if (userToken) {
+      const initData = async () => {
+        setIsLoading(true); // 💡 두 API 호출이 완전히 끝나기 전에 로딩바를 계속 유지하도록 상단 배치
+        await fetchUserData();      // 유저 태그 불러오기
+        await fetchRecommendations(); // 위치 기반 TOP 3 데이터 불러오기
+        await fetchFeedbacks();
+        setIsLoading(false);
+      };
+      initData();
+    }
+  }, [userToken]);
 
   // 🌟 [추가] userNickname props가 변경되었을 때도 동기화되도록 안전장치 추가
   useEffect(() => {
@@ -102,70 +122,66 @@ const fetchRecommendations = async () => {
   }, [userNickname]);
 
   const fetchFeedbacks = async () => {
-  try {
-    const response = await fetch('http://10.0.2.2:5000/api/feedback', {
-      headers: { 'Authorization': `Bearer ${userToken}` }
-    });
-    const data = await response.json();
-    if (data.success) {
-      setUserFeedbacks(data.feedbacks); // 받아온 피드백 배열 저장
+    try {
+      const response = await fetch('http://10.0.2.2:5000/api/feedback', {
+        headers: { 'Authorization': `Bearer ${userToken}` }
+      });
+      const data = await response.json();
+      if (data.success) {
+        setUserFeedbacks(data.feedbacks); // 받아온 피드백 배열 저장
+      }
+    } catch (error) {
+      console.error("피드백 로드 실패:", error);
     }
-  } catch (error) {
-    console.error("피드백 로드 실패:", error);
-  }
-};
+  };
 
-const sendFeedbackToServer = async (targetId, feedbackType) => {
-  // targetId가 구글 ID(ChIJ...)라면 24자리 가짜 ObjectId로 변환해서 보냅니다.
-  // 서버가 이 변환된 값을 보고 원래 구글 ID로 매핑할 수 있게 하거나,
-  // 최소한 "Cast Error"는 피하게 만드는 임시 방편입니다.
-  
-  // ChIJ... 로 시작하는 ID를 24자리의 16진수 형태로 변환 (임시)
-  const fakeObjectId = targetId
-    .replace(/[^a-fA-F0-9]/g, '') // 영문/숫자만 남김
-    .padEnd(24, '0')             // 부족하면 뒤를 0으로 채움
-    .substring(0, 24);           // 정확히 24자로 자름
+  const sendFeedbackToServer = async (targetId, feedbackType) => {
+    const fakeObjectId = targetId
+      .replace(/[^a-fA-F0-9]/g, '') 
+      .padEnd(24, '0')             
+      .substring(0, 24);           
 
-  try {
-    const response = await fetch('http://10.0.2.2:5000/api/feedback', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${userToken}`
-      },
-      body: JSON.stringify({ 
-        placeId: fakeObjectId, // 서버가 원하는 필드명은 유지
-        originalGoogleId: targetId, // 서버가 혹시 참고할지도 모르는 원본 ID
-        feedback: feedbackType 
-      })
-    });
+    try {
+      const response = await fetch('http://10.0.2.2:5000/api/feedback', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${userToken}`
+        },
+        body: JSON.stringify({ 
+          placeId: fakeObjectId, 
+          originalGoogleId: targetId, 
+          feedback: feedbackType 
+        })
+      });
 
-    const result = await response.json();
-    console.log("서버 응답:", result);
+      const result = await response.json();
+      console.log("서버 응답:", result);
 
-    if (result.success) {
-      //Alert.alert("성공", "피드백 반영 완료!");
-      fetchFeedbacks();
-      return true;
-    } else {
-      //Alert.alert("저장 실패", result.message || "알 수 없는 에러");
+      if (result.success) {
+        fetchFeedbacks();
+        return true;
+      } else {
+        return false;
+      }
+    } catch (error) {
+      console.error("통신 에러:", error);
       return false;
     }
-  } catch (error) {
-    console.error("통신 에러:", error);
-    return false;
-  }
-};
-  const handleRefresh = () => {
-    setRecommendationList(prev => [...prev].reverse());
+  };
+
+  const handleRefresh = async () => {
+    setIsLoading(true);
+    await fetchRecommendations(); // 새로고침 버튼 클릭 시 위치 정보를 다시 추적하여 최신 데이터 수신
+    setIsLoading(false);
   };
 
   // 서버 통신 중일 때 보여줄 로딩 뷰
   if (isLoading) {
     return (
       <SafeAreaView style={[styles.container, styles.loadingCenter]}>
-        <ActivityIndicator size="large" color="#007AFF" />
-        <Text style={{ marginTop: 10, color: '#666' }}>내 취향 정보 불러오는 중...</Text>
+        <ActivityIndicator size="large" color="#4A6741" />
+        <Text style={{ marginTop: 10, color: '#666' }}>내 위치 기반 추천 정보 검색 중...</Text>
       </SafeAreaView>
     );
   }
@@ -182,7 +198,6 @@ const sendFeedbackToServer = async (targetId, feedbackType) => {
               style={styles.profileImage} 
             />
             <View style={styles.profileTextBox}>
-              {/* 🌟 진짜 내 닉네임 렌더링 구역 */}
               <Text style={styles.profileName}>{nickname}님 ✨</Text>
               <Text style={styles.myPageLinkText}>마이페이지 보기 ➔</Text>
             </View>
@@ -235,90 +250,75 @@ const sendFeedbackToServer = async (targetId, feedbackType) => {
           <Text style={styles.mainTitle}>AI 추천 놀거리 Top 3</Text>
         </View>
 
-  <View style={styles.listContainer}>
-  {recommendationList.slice(0, 3).map((item, index) => {
-    const place = item?.place || item;
-    const dbPlaceId = place._id || place.googlePlaceId || place.id;
+        <View style={styles.listContainer}>
+          {recommendationList.slice(0, 3).map((item, index) => {
+            const place = item?.place || item;
+            const dbPlaceId = place._id || place.googlePlaceId || place.id;
 
-    if (!dbPlaceId) return null;
+            if (!dbPlaceId) return null;
 
-    return (
-      <View key={dbPlaceId} style={styles.rowCard}>
-        <View style={styles.iconContainer}>
-    <Ionicons 
-       name={getIconName(place.hashtags || [place.category])} 
-       size={40} 
-       color="#666" 
-       
-    />
-  </View>
+            return (
+              <View key={dbPlaceId} style={styles.rowCard}>
+                <View style={styles.iconContainer}>
+                  <Ionicons 
+                    name={getIconName(place.hashtags || [place.category])} 
+                    size={40} 
+                    color="#666" 
+                  />
+                </View>
 
-        <View style={styles.rowCardContent}>
-          <Text style={styles.rowPlaceTitle}>{place.name}</Text>
-          <Text style={styles.rowReasonText}>{item.reason || "취향에 맞는 장소입니다."}</Text>
+                <View style={styles.rowCardContent}>
+                  <Text style={styles.rowPlaceTitle}>{place.name}</Text>
+                  <Text style={styles.rowReasonText}>{item.reason || "취향에 맞는 장소입니다."}</Text>
 
-          <View style={styles.rowFeedbackGroup}>
-        <TouchableOpacity 
-          style={[
-            styles.miniFeedbackButton, 
-            // ?. 를 사용하여 f.placeId가 null이더라도 에러가 안 나게 만듦
-            userFeedbacks.some(f => f.placeId?._id === dbPlaceId && f.feedback === 'like') && styles.feedbackLikeActive
-          ]}
-         onPress={async () => {
-    // 2. 낙관적 업데이트: 
-    // 기존에 있던 해당 장소 피드백은 지우고, 새로운 상태로 덮어씌웁니다.
-    const newFeedback = { placeId: { _id: dbPlaceId }, feedback: 'like' };
-    
-    setUserFeedbacks(prev => {
-        // 기존 피드백들 중에서 현재 장소 ID가 아닌 것들만 남김
-        const others = prev.filter(f => (f.placeId?._id || f.placeId) !== dbPlaceId);
-        // 거기에 좋아요 상태를 추가
-        return [...others, newFeedback];
-    });
-
-    const success = await sendFeedbackToServer(dbPlaceId, 'like');
-    if (!success) {
-      fetchFeedbacks(); // 실패 시에만 서버 상태로 복구
-    }
-  }}
-        >
-          <Text style={[
-          styles.miniFeedbackText, 
-          userFeedbacks.some(f => f.placeId?._id === dbPlaceId && f.feedback === 'like') && styles.activeText
-        ]}>👍 좋아요</Text>
-        </TouchableOpacity>
-            
-      <TouchableOpacity 
-        style={[
-          styles.miniFeedbackButton, 
-          // 동일하게 ?. 적용
-          userFeedbacks.some(f => f.placeId?._id === dbPlaceId && f.feedback === 'dislike') && styles.feedbackDislikeActive
-        ]}
-       onPress={async () => {
-    const newFeedback = { placeId: { _id: dbPlaceId }, feedback: 'dislike' };
-    
-    setUserFeedbacks(prev => {
-        const others = prev.filter(f => (f.placeId?._id || f.placeId) !== dbPlaceId);
-        return [...others, newFeedback];
-    });
-
-    const success = await sendFeedbackToServer(dbPlaceId, 'dislike');
-    if (!success) {
-      fetchFeedbacks();
-    }
-  }}
-      >
-        <Text style={[
-          styles.miniFeedbackText, 
-          userFeedbacks.some(f => f.placeId?._id === dbPlaceId && f.feedback === 'dislike') && styles.activeText
-  ]}>👎 별로예요</Text>
-      </TouchableOpacity>
-          </View>
+                  <View style={styles.rowFeedbackGroup}>
+                    <TouchableOpacity 
+                      style={[
+                        styles.miniFeedbackButton, 
+                        userFeedbacks.some(f => f.placeId?._id === dbPlaceId && f.feedback === 'like') && styles.feedbackLikeActive
+                      ]}
+                      onPress={async () => {
+                        const newFeedback = { placeId: { _id: dbPlaceId }, feedback: 'like' };
+                        setUserFeedbacks(prev => {
+                          const others = prev.filter(f => (f.placeId?._id || f.placeId) !== dbPlaceId);
+                          return [...others, newFeedback];
+                        });
+                        const success = await sendFeedbackToServer(dbPlaceId, 'like');
+                        if (!success) { fetchFeedbacks(); }
+                      }}
+                    >
+                      <Text style={[
+                        styles.miniFeedbackText, 
+                        userFeedbacks.some(f => f.placeId?._id === dbPlaceId && f.feedback === 'like') && styles.activeText
+                      ]}>👍 좋아요</Text>
+                    </TouchableOpacity>
+                        
+                    <TouchableOpacity 
+                      style={[
+                        styles.miniFeedbackButton, 
+                        userFeedbacks.some(f => f.placeId?._id === dbPlaceId && f.feedback === 'dislike') && styles.feedbackDislikeActive
+                      ]}
+                      onPress={async () => {
+                        const newFeedback = { placeId: { _id: dbPlaceId }, feedback: 'dislike' };
+                        setUserFeedbacks(prev => {
+                          const others = prev.filter(f => (f.placeId?._id || f.placeId) !== dbPlaceId);
+                          return [...others, newFeedback];
+                        });
+                        const success = await sendFeedbackToServer(dbPlaceId, 'dislike');
+                        if (!success) { fetchFeedbacks(); }
+                      }}
+                    >
+                      <Text style={[
+                        styles.miniFeedbackText, 
+                        userFeedbacks.some(f => f.placeId?._id === dbPlaceId && f.feedback === 'dislike') && styles.activeText
+                      ]}>👎 별로예요</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              </View>
+            );
+          })}
         </View>
-      </View>
-    );
-  })}
-</View>
       </ScrollView>
     </SafeAreaView>
   );
@@ -359,8 +359,8 @@ const styles = StyleSheet.create({
   
   listContainer: { marginBottom: 10 },
   rowCard: {
-    flexDirection: 'row',        // 가로로 배치 (아이콘 + 텍스트)
-    alignItems: 'center',        // 🌟 핵심: 세로 방향으로 중앙 정렬
+    flexDirection: 'row',        
+    alignItems: 'center',        
     backgroundColor: '#fff',
     borderRadius: 12,
     padding: 10,
@@ -372,15 +372,14 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.04,
     shadowRadius: 2,
     elevation: 1,
-    height: 105,                 // 고정 높이
+    height: 105,                 
   },
   rowCardImage: { width: '100%', height: '100%', borderRadius: 8, backgroundColor: '#e8f0e5' },
   rowRankBadge: { position: 'absolute', top: 4, left: 4, backgroundColor: 'rgba(74, 103, 65, 0.9)', width: 18, height: 18, borderRadius: 9, justifyContent: 'center', alignItems: 'center' },
   rowRankText: { color: '#fff', fontSize: 11, fontWeight: 'bold' },
   rowCardContent: {
     flex: 1,
-    justifyContent: 'center',    // 🌟 텍스트 영역도 세로 중앙으로 정렬
-    // height: '100%',           // 필요하면 명시적으로 높이 100% 부여
+    justifyContent: 'center',    
   },
   rowPlaceTitle: { fontSize: 15, fontWeight: 'bold', color: '#4A6741', flex: 1, marginRight: 4 },
   rowReasonText: { fontSize: 12, color: '#6B7F5E', lineHeight: 16 },
@@ -397,10 +396,8 @@ const styles = StyleSheet.create({
     height: 60,
     borderRadius: 30,
     backgroundColor: '#f0f0f0',
-    justifyContent: 'center',    // 컨테이너 안에서 아이콘 가로 중앙
-    alignItems: 'center',        // 컨테이너 안에서 아이콘 세로 중앙
+    justifyContent: 'center',    
+    alignItems: 'center',        
     marginRight: 15,
-    // 필요시 여기에 marginLeft를 살짝 줘서 왼쪽 여백 조절 가능
   }
-
 });
