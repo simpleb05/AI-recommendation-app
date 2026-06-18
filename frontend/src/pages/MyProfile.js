@@ -14,7 +14,7 @@ export default function MyProfileScreen({ onNavigate, userToken, userNickname, u
   useEffect(() => {
     const fetchMyFavorites = async () => {
       try {
-        const response = await fetch('http://10.0.2.2:5000/api/favorites', {
+        const response = await fetch('https://ai-recommendation-app-19jj.onrender.com/api/favorites', {
           headers: { 'Authorization': `Bearer ${userToken}` }
         });
         const data = await response.json();

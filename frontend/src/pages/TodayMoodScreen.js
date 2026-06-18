@@ -77,7 +77,7 @@ export default function TodayMoodScreen({ onNavigate, userToken }) {
   console.log("서버로 전송하는 매핑된 데이터:", payload);
 
     try {
-      const response = await fetch('http://10.0.2.2:5000/api/user/preference', {
+      const response = await fetch('https://ai-recommendation-app-19jj.onrender.com/api/user/preference', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

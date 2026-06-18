@@ -22,7 +22,7 @@ export default function HomeScreen({ onNavigate, userToken, userNickname }) {
   const fetchUserData = async () => {
     try {
       // 백엔드 주소 규칙: /api/user/preference
-      const response = await fetch('http://10.0.2.2:5000/api/user/preference', {
+      const response = await fetch('https://ai-recommendation-app-19jj.onrender.com/api/user/preference', {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -78,7 +78,7 @@ export default function HomeScreen({ onNavigate, userToken, userNickname }) {
 
       // 3. 백엔드 컨트롤러 스펙에 맞춰 쿼리 파라미터(?latitude=...&longitude=...&limit=3) 탑재하여 fetch 전송
       const response = await fetch(
-        `http://10.0.2.2:5000/api/recommend?latitude=${latitude}&longitude=${longitude}&limit=3`,
+        `https://ai-recommendation-app-19jj.onrender.com/api/recommend?latitude=${latitude}&longitude=${longitude}&limit=3`,
         {
           method: 'GET',
           headers: { 
@@ -123,7 +123,7 @@ export default function HomeScreen({ onNavigate, userToken, userNickname }) {
 
   const fetchFeedbacks = async () => {
     try {
-      const response = await fetch('http://10.0.2.2:5000/api/feedback', {
+      const response = await fetch('https://ai-recommendation-app-19jj.onrender.com/api/feedback', {
         headers: { 'Authorization': `Bearer ${userToken}` }
       });
       const data = await response.json();
@@ -142,7 +142,7 @@ export default function HomeScreen({ onNavigate, userToken, userNickname }) {
       .substring(0, 24);           
 
     try {
-      const response = await fetch('http://10.0.2.2:5000/api/feedback', {
+      const response = await fetch('https://ai-recommendation-app-19jj.onrender.com/api/feedback', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

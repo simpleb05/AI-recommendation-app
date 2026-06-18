@@ -105,7 +105,7 @@ export default function RecommendationMapScreen({ onNavigate, userToken }) {
 
   const fetchFeedbacks = async () => {
     try {
-      const response = await fetch('http://10.0.2.2:5000/api/feedback', {
+      const response = await fetch('https://ai-recommendation-app-19jj.onrender.com/api/feedback', {
         headers: {
           Authorization: `Bearer ${userToken}`,
         },
@@ -123,7 +123,7 @@ export default function RecommendationMapScreen({ onNavigate, userToken }) {
 
   const fetchFavorites = async () => {
     try {
-      const response = await fetch('http://10.0.2.2:5000/api/favorites', {
+      const response = await fetch('https://ai-recommendation-app-19jj.onrender.com/api/favorites', {
         headers: { Authorization: `Bearer ${userToken}` },
       });
       const data = await response.json();
@@ -153,7 +153,7 @@ export default function RecommendationMapScreen({ onNavigate, userToken }) {
   const fetchPlaces = async (lat, lng) => {
     try {
       // radius 파라미터를 넘겨주어 백엔드가 범위에 맞게 찾아오게 합니다.
-      const url = `http://10.0.2.2:5000/api/recommend?latitude=${lat}&longitude=${lng}&radius=${radius}`;
+      const url = `https://ai-recommendation-app-19jj.onrender.com/api/recommend?latitude=${lat}&longitude=${lng}&radius=${radius}`;
       const response = await fetch(url, {
         headers: { Authorization: `Bearer ${userToken}` },
       });
@@ -205,8 +205,8 @@ export default function RecommendationMapScreen({ onNavigate, userToken }) {
 
     try {
       const response = await fetch(isAlreadyFavorite 
-        ? `http://10.0.2.2:5000/api/favorites/${hexId}` 
-        : `http://10.0.2.2:5000/api/favorites`, {
+        ? `https://ai-recommendation-app-19jj.onrender.com/api/favorites/${hexId}` 
+        : `https://ai-recommendation-app-19jj.onrender.com/api/favorites`, {
         method: isAlreadyFavorite ? 'DELETE' : 'POST',
         headers: {
           'Authorization': `Bearer ${userToken}`,
@@ -241,7 +241,7 @@ export default function RecommendationMapScreen({ onNavigate, userToken }) {
     const hexId = getHexId(googlePlaceId);
 
     try {
-      const response = await fetch('http://10.0.2.2:5000/api/feedback', {
+      const response = await fetch('https://ai-recommendation-app-19jj.onrender.com/api/feedback', {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',

@@ -16,7 +16,7 @@ export default function FavoritesScreen({ onNavigate }) {
     const token = await AsyncStorage.getItem('userToken');
     console.log("현재 보낼 토큰 값:", token);
 
-     const response = await fetch('http://10.0.2.2:5000/api/favorites', {
+     const response = await fetch('https://ai-recommendation-app-19jj.onrender.com', {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -41,7 +41,7 @@ export default function FavoritesScreen({ onNavigate }) {
 
   const handleRemoveFavorite = async (id) => {
     // 서버 삭제 요청 로직
-    await fetch(`http://10.0.2.2:5000/api/favorites/${id}`, { method: 'DELETE' });
+    await fetch(`https://ai-recommendation-app-19jj.onrender.com/api/favorites/${id}`, { method: 'DELETE' });
     setFavorites(prev => prev.filter(item => item._id !== id)); // _id로 비교
   };
 

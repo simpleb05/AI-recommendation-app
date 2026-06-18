@@ -30,7 +30,7 @@ export default function SignUpScreen({ onNavigate, setIsNewUser }) {
 
     // 4. 백엔드 API 호출
     try {
-      const response = await fetch('http://10.0.2.2:5000/api/auth/register', {
+      const response = await fetch('https://ai-recommendation-app-19jj.onrender.com/api/auth/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

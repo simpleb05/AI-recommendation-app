@@ -38,7 +38,7 @@ export default function PreferencesScreen({ onNavigate, userToken }) {
       const combinedMoodTags = selectedTags.join(', ');
 
       // 💡 백엔드 취향 설정 저장 API 호출 (안드로이드 에뮬레이터 주소)
-      const response = await fetch('http://10.0.2.2:5000/api/user/preference', {
+      const response = await fetch('https://ai-recommendation-app-19jj.onrender.com/api/user/preference', {
         method: 'PUT', // userController의 updatePreference 엔드포인트 규칙에 맞춤
         headers: {
           'Content-Type': 'application/json',

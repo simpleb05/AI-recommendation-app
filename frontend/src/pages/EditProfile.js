@@ -12,7 +12,7 @@ export default function EditProfileScreen({ onNavigate, userToken, userNickname,
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const response = await fetch('http://10.0.2.2:5000/api/user/profile', {
+        const response = await fetch('https://ai-recommendation-app-19jj.onrender.com/api/user/profile', {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
@@ -52,7 +52,7 @@ export default function EditProfileScreen({ onNavigate, userToken, userNickname,
     try {
       // 닉네임 변경
       if (username !== userNickname) {
-        const nicknameRes = await fetch('http://10.0.2.2:5000/api/user/nickname', {
+        const nicknameRes = await fetch('https://ai-recommendation-app-19jj.onrender.com/api/user/nickname', {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
@@ -70,7 +70,7 @@ export default function EditProfileScreen({ onNavigate, userToken, userNickname,
 
       // 비밀번호 변경
       if (currentPassword && newPassword) {
-        const passwordRes = await fetch('http://10.0.2.2:5000/api/user/password', {
+        const passwordRes = await fetch('https://ai-recommendation-app-19jj.onrender.com/api/user/password', {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',

@@ -24,7 +24,7 @@ export default function SignInScreen({ onNavigate, isNewUser, setIsNewUser, onSi
 
     try {
       // 3. 백엔드 로그인 API 호출
-      const response = await fetch('http://10.0.2.2:5000/api/auth/login', {
+      const response = await fetch('https://ai-recommendation-app-19jj.onrender.com/api/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
