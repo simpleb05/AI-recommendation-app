@@ -1,0 +1,107 @@
+import React, { useState } from 'react';
+import { StyleSheet, Text, View, TextInput, TouchableOpacity, Alert, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
+
+// 이름을 SignUpScreen으로 변경하고, 화면 이동용인 onNavigate 함수를 받아옵니다.
+export default function SignUpScreen({ onNavigate, setIsNewUser }) {
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+
+  const handleSignUp = async () => {
+  // 1. 모든 항목 필수 입력 검사
+  if (!name || !email || !password || !confirmPassword) {
+    Alert.alert('알림', '모든 항목을 입력해 주세요.');
+    return;
+  }
+
+    // 2. 이메일 형식 검사 (@와 도메인이 올바르게 들어갔는지 확인)
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      Alert.alert('오류', '올바른 이메일 형식(example@email.com)이 아닙니다.');
+      return;
+    }
+
+    // 3. 비밀번호 일치 여부 검사
+    if (password !== confirmPassword) {
+      Alert.alert('오류', '비밀번호가 일치하지 않습니다.');
+      return;
+    }
+
+    // 4. 백엔드 API 호출
+    try {
+      const response = await fetch('http://10.0.2.2:5000/api/auth/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: email,
+          password: password,
+          nickname: name,
+        }),
+      });
+
+// 💡 SignUp.js의 43번째 줄 근처 수정하기
+const data = await response.json();
+
+    if (data.success) {
+      // 🌟 이 한 줄을 추가해서 "새로운 유저 가입했음!" 스위치를 켜줍니다.
+      setIsNewUser(true); 
+
+      Alert.alert(
+        '회원가입 완료',
+        `${name}님의 회원가입이 성공적으로 완료되었습니다!`,
+        [{ text: '확인', onPress: () => onNavigate('SignIn') }]
+      );
+    } else {
+        Alert.alert('오류', data.message);
+      }
+    } catch (error) {
+      Alert.alert('오류', '서버 연결에 실패했습니다.');
+    }
+  };
+
+  return (
+    <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.container}>
+      <ScrollView contentContainerStyle={styles.scrollContainer}>
+        <Text style={styles.title}>회원가입</Text>
+        <View style={styles.inputGroup}>
+          <Text style={styles.label}>이름</Text>
+          <TextInput style={styles.input} placeholder="이름을 입력하세요" value={name} onChangeText={setName} />
+          
+          <Text style={styles.label}>이메일 주소</Text>
+          <TextInput style={styles.input} placeholder="이메일을 입력하세요" keyboardType="email-address" autoCapitalize="none" value={email} onChangeText={setEmail} />
+          
+          <Text style={styles.label}>비밀번호</Text>
+          <TextInput style={styles.input} placeholder="비밀번호를 입력하세요" secureTextEntry={true} value={password} onChangeText={setPassword} />
+          
+          <Text style={styles.label}>비밀번호 확인</Text>
+          <TextInput style={styles.input} placeholder="비밀번호를 한 번 더 입력하세요" secureTextEntry={true} value={confirmPassword} onChangeText={setConfirmPassword} />
+        </View>
+        
+        <TouchableOpacity style={styles.button} onPress={handleSignUp}>
+          <Text style={styles.buttonText}>다음</Text>
+        </TouchableOpacity>
+
+        {/* 웰컴 화면으로 돌아가는 버튼 */}
+        <TouchableOpacity style={styles.backButton} onPress={() => onNavigate('Welcome')}>
+          <Text style={styles.backButtonText}>이전으로</Text>
+        </TouchableOpacity>
+      </ScrollView>
+    </KeyboardAvoidingView>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: '#F1F8F1' },
+  scrollContainer: { flexGrow: 1, padding: 24, justifyContent: 'center' },
+  title: { fontSize: 28, fontWeight: 'bold', marginBottom: 32, textAlign: 'center', color: '#4A6741' },
+  inputGroup: { marginBottom: 30 },
+  label: { fontSize: 14, fontWeight: '600', marginBottom: 8, color: '#4A6741' },
+  input: { borderWidth: 1, borderColor: '#b5c9b0', borderRadius: 8, padding: 14, fontSize: 16, marginBottom: 16, backgroundColor: '#fff' },
+  button: { backgroundColor: '#4A6741', paddingVertical: 16, borderRadius: 8, alignItems: 'center', marginTop: 10 },
+  buttonText: { color: '#fff', fontSize: 18, fontWeight: 'bold' },
+  backButton: { marginTop: 16, alignItems: 'center', paddingVertical: 10 },
+  backButtonText: { color: '#6B7F5E', fontSize: 16 },
+});
