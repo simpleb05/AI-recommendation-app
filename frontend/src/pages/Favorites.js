@@ -16,7 +16,7 @@ export default function FavoritesScreen({ onNavigate }) {
     const token = await AsyncStorage.getItem('userToken');
     console.log("현재 보낼 토큰 값:", token);
 
-     const response = await fetch('https://ai-recommendation-app-19jj.onrender.com', {
+     const response = await fetch('https://ai-recommendation-app-19jj.onrender.com/api/favorites', {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
