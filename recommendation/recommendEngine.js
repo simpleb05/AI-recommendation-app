@@ -166,26 +166,34 @@ function recommendPlaces(places, userPreference) {
   // 1. 결과물 리스트를 변수에 먼저 담습니다.
   const result = places
     .filter((place) => {
-      console.log(
-      "좌표 확인:",
-      place.name,
-      place.latitude,
-      place.longitude
-    );
-    console.log(
-      "사용자 좌표:",
-      userPreference.latitude,
-      userPreference.longitude
-    );
-      if (!userPreference.latitude || !userPreference.longitude || !place.latitude || !place.longitude) {
-        return false;
-      }
-      const distance = getDistance(
-        userPreference.latitude,
-        userPreference.longitude,
-        place.latitude,
-        place.longitude
-      );
+  console.log(
+    "좌표 확인:",
+    place.name,
+    place.latitude,
+    place.longitude
+  );
+
+  console.log(
+    "사용자 좌표:",
+    userPreference.latitude,
+    userPreference.longitude
+  );
+
+  if (
+    !userPreference.latitude ||
+    !userPreference.longitude ||
+    !place.latitude ||
+    !place.longitude
+  ) {
+    return false;
+  }
+
+  const distance = getDistance(
+    userPreference.latitude,
+    userPreference.longitude,
+    place.latitude,
+    place.longitude
+  );
       return true;
     })
     .map((place) => calculateScore(place, userPreference))
@@ -194,14 +202,6 @@ function recommendPlaces(places, userPreference) {
       return (b.rating || 0) - (a.rating || 0);
     })
     .filter(place => place.score > 0);
-
-  console.log(
-      place.name,
-      "거리:",
-      Math.round(distance),
-      "반경:",
-      userPreference.radius
-    );
   return result;
 }
 
