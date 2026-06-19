@@ -60,6 +60,9 @@ function calculateScore(place, userPreference) {
 
   const placeHashtags = convertTypesToHashtags(place.types);
   const preferredTags = userPreference.preferredTags || [];
+  const likedCategories = userPreference.likedCategories || [];
+  const likedMoodTags = userPreference.likedMoodTags || [];
+  const dislikedMoodTags = userPreference.dislikedMoodTags || [];
 
   console.log("원본 types:", place.types);
   console.log("변환 태그:", placeHashtags);
@@ -78,6 +81,41 @@ function calculateScore(place, userPreference) {
       );
 
       score += 30;
+    }
+  });
+});
+
+  // 1-1. 좋아요 피드백 가중치
+likedMoodTags.forEach((tag) => {
+  const mappedTags = userTagMap[tag] || [tag];
+
+  mappedTags.forEach((mappedTag) => {
+    if (placeHashtags.includes(mappedTag)) {
+      console.log(
+        "좋아요 피드백 매칭:",
+        tag,
+        "→",
+        mappedTag
+      );
+
+      score += 20;
+    }
+  });
+});
+// 싫어요 피드백 감점
+dislikedMoodTags.forEach((tag) => {
+  const mappedTags = userTagMap[tag] || [tag];
+
+  mappedTags.forEach((mappedTag) => {
+    if (placeHashtags.includes(mappedTag)) {
+      console.log(
+        "싫어요 피드백 매칭:",
+        tag,
+        "→",
+        mappedTag
+      );
+
+      score -= 20;
     }
   });
 });
@@ -166,18 +204,6 @@ function recommendPlaces(places, userPreference) {
   // 1. 결과물 리스트를 변수에 먼저 담습니다.
   const result = places
     .filter((place) => {
-  console.log(
-    "좌표 확인:",
-    place.name,
-    place.latitude,
-    place.longitude
-  );
-
-  console.log(
-    "사용자 좌표:",
-    userPreference.latitude,
-    userPreference.longitude
-  );
 
   if (
     !userPreference.latitude ||
