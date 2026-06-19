@@ -41,6 +41,12 @@ const getRecommendations = async (req, res) => {
       ? '${activityKeyword} 가볼만한곳'
       : `주변 가볼만한곳 명소 카페`;
 
+    console.log("최종 검색 키워드:", keyword);
+    console.log("activityKeyword:", activityKeyword);
+    console.log("moodTags:", moodTags);
+    console.log("activityType:", activityType);
+    console.log("moodTag:", moodTag);
+    
     const selectedMoodTag = moodTags[0] || moodTag;
 
     const defaultLatitude = 35.2278;
