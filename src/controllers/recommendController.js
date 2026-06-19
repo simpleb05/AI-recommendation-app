@@ -194,7 +194,7 @@ const getRecommendations = async (req, res) => {
       longitude,
       radius
     );
-
+    console.log("Google Places 개수:", googlePlaces.length);
     const recommendations = recommendPlaces(googlePlaces, {
       preferredTags: [
         activityKeyword,
