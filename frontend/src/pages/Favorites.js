@@ -68,7 +68,12 @@ export default function FavoritesScreen({ onNavigate }) {
       <TouchableOpacity 
         key={item._id || item.id} 
         style={styles.favoriteCard}
-        onPress={() => onNavigate('PlaceDetail', { place: item })}
+        onPress={() =>
+          onNavigate(
+            'NewRecommendation',
+            item.placeId
+          )
+        }
       >
         {/* 데이터가 안전하게 있을 때만 접근 */}
         <View style={styles.cardIconBox}>

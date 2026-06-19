@@ -45,7 +45,7 @@ const getPlaceId = (place) => {
   return place?._id || place?.googlePlaceId || place?.id;
 };
 
-export default function RecommendationMapScreen({ onNavigate, userToken }) {
+export default function RecommendationMapScreen({ onNavigate, userToken,selectedPlace: favoritePlace }) {
   const [places, setPlaces] = useState([]);
   const [filteredPlaces, setFilteredPlaces] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -169,13 +169,40 @@ export default function RecommendationMapScreen({ onNavigate, userToken }) {
     }
   };
 
+useEffect(() => {
+  if (!favoritePlace) return;
+
+  setInitialLocation({
+    latitude: parseFloat(favoritePlace.latitude),
+    longitude: parseFloat(favoritePlace.longitude),
+  });
+
+  setSelectedPlace(favoritePlace);
+
+  setLoading(false);   // 추가
+
+  setTimeout(() => {
+    mapRef.current?.animateToRegion(
+      {
+        latitude: parseFloat(favoritePlace.latitude),
+        longitude: parseFloat(favoritePlace.longitude),
+        latitudeDelta: 0.001,
+        longitudeDelta: 0.001,
+      },
+      500
+    );
+  }, 500);
+}, [favoritePlace]);
+
   // 1. 앱 진입 시 한 번만 실행되도록 통합
   useEffect(() => {
     const initAll = async () => {
       loadFavoritesFromStorage();
       await fetchFavorites();
       await fetchFeedbacks();
-      await initLocationAndFetch(); // 위치 구하고 장소까지 한 번에 다 가져오기
+      if (!favoritePlace) {
+      await initLocationAndFetch();
+    } // 위치 구하고 장소까지 한 번에 다 가져오기
     };
     initAll();
   }, []);
@@ -356,6 +383,16 @@ export default function RecommendationMapScreen({ onNavigate, userToken }) {
               strokeColor="rgba(0, 122, 255, 0.5)"
               fillColor="rgba(0, 122, 255, 0.2)"
             />
+            {selectedPlace && (
+            <Marker
+              coordinate={{
+                latitude: parseFloat(selectedPlace.latitude),
+                longitude: parseFloat(selectedPlace.longitude),
+              }}
+              title={selectedPlace.name}
+              pinColor="blue"
+            />
+          )}
             {filteredPlaces.map((place) => (
               <Marker
               pinColor={

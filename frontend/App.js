@@ -18,10 +18,15 @@ export default function App() {
   const [userToken, setUserToken] = useState(null); 
   const [userNickname, setUserNickname] = useState('사용자');
   const [userEmail, setUserEmail] = useState('user@changwon.ac.kr');
+  const [selectedPlace, setSelectedPlace] = useState(null);
 
-  const handleNavigate = (screenName) => {
-    setCurrentScreen(screenName);
-  };
+  const handleNavigate = (screenName, place = null) => {
+  if (screenName === 'NewRecommendation') {
+    setSelectedPlace(place || null);
+  }
+
+  setCurrentScreen(screenName);
+};
 
   // 🔑 [수정 완료] 이제 매개변수에서 token, nickname과 함께 'email'도 누락 없이 완벽히 받아옵니다!
   const handleSignInSuccess = (token, nickname, email) => {
@@ -84,8 +89,10 @@ export default function App() {
         )}
 
         {currentScreen === 'NewRecommendation' && (
-          <RecommendationMapScreen onNavigate={handleNavigate} 
-          userToken={userToken}
+          <RecommendationMapScreen
+            onNavigate={handleNavigate}
+            userToken={userToken}
+            selectedPlace={selectedPlace}
           />
         )}
 
