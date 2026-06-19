@@ -60,4 +60,4 @@ function convertTypesToHashtags(types) {
   return [...new Set(hashtags)];
 }
 
-module.exports = { convertTypesToHashtags };
+module.exports = { convertTypesToHashtags, userTagMap, };
