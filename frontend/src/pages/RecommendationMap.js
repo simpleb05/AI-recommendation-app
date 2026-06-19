@@ -264,14 +264,15 @@ export default function RecommendationMapScreen({ onNavigate, userToken }) {
   };
 
   const moveToPlace = (place) => {
+    console.log("목록 클릭:", place.name);
     setSelectedPlace(place);
 
     mapRef.current?.animateToRegion(
       {
         latitude: parseFloat(place.latitude),
         longitude: parseFloat(place.longitude),
-        latitudeDelta: 0.02,
-        longitudeDelta: 0.02,
+        latitudeDelta: 0.001,
+        longitudeDelta: 0.001,
       },
       500
     );
@@ -314,8 +315,8 @@ export default function RecommendationMapScreen({ onNavigate, userToken }) {
                   {
                     latitude: initialLocation.latitude,
                     longitude: initialLocation.longitude,
-                    latitudeDelta: 0.03,
-                    longitudeDelta: 0.03,
+                    latitudeDelta: 0.015,
+                    longitudeDelta: 0.015,
                   },
                   500
                 );
@@ -337,14 +338,14 @@ export default function RecommendationMapScreen({ onNavigate, userToken }) {
             key={`${initialLocation.latitude}-${initialLocation.longitude}`}
             ref={mapRef}
             style={styles.map}
-            region={{
+            initialRegion={{
                 latitude: initialLocation.latitude,
                 longitude: initialLocation.longitude,
                 latitudeDelta: 0.03,
                 longitudeDelta: 0.03,
               }}
             showsUserLocation={true}
-            followsUserLocation={true}
+            followsUserLocation={false}
           >
             <Circle
               center={{ 
@@ -357,13 +358,22 @@ export default function RecommendationMapScreen({ onNavigate, userToken }) {
             />
             {filteredPlaces.map((place) => (
               <Marker
+              pinColor={
+                  selectedPlace &&
+                  getPlaceId(selectedPlace) === getPlaceId(place)
+                    ? "blue"
+                    : "red"
+                }
                 key={getPlaceId(place)}
                 coordinate={{
                   latitude: parseFloat(place.latitude),
                   longitude: parseFloat(place.longitude),
                 }}
                 title={place.name}
-                onPress={() => setSelectedPlace(place)}
+                onPress={() => {
+                  console.log("선택된 장소:", place.name);
+                  setSelectedPlace(place);
+                }}
               />
             ))}
           </MapView>
