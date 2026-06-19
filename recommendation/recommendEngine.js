@@ -166,6 +166,17 @@ function recommendPlaces(places, userPreference) {
   // 1. 결과물 리스트를 변수에 먼저 담습니다.
   const result = places
     .filter((place) => {
+      console.log(
+      "좌표 확인:",
+      place.name,
+      place.latitude,
+      place.longitude
+    );
+    console.log(
+      "사용자 좌표:",
+      userPreference.latitude,
+      userPreference.longitude
+    );
       if (!userPreference.latitude || !userPreference.longitude || !place.latitude || !place.longitude) {
         return false;
       }
