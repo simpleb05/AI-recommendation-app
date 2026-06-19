@@ -142,7 +142,7 @@ function makeReason(placeHashtags, userPreference, place) {
     return "예산과 평점 정보를 함께 고려하여 추천합니다.";
   }
 
-  return "평점과 장소 정보를 기준으로 추천합니다.";
+  return "사용자의 취향 태그와 선호 정보를 종합하여 추천합니다.";
 }
 
 function recommendPlaces(places, userPreference) {
