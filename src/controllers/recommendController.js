@@ -258,7 +258,17 @@ const getRecommendations = async (req, res) => {
       },
       keyword,
       recommendations: limit ? recommendations.slice(0, limit) : recommendations,
+    
     });
+    console.log(
+  "최종 반환 추천 개수:",
+  recommendations.length
+);
+
+console.log(
+  "limit 값:",
+  limit
+);
   } catch (error) {
     return res.status(500).json({
       success: false,
