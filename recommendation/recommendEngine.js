@@ -63,7 +63,7 @@ function calculateScore(place, userPreference) {
 
   console.log("원본 types:", place.types);
   console.log("변환 태그:", placeHashtags);
-  
+
   // 1. 취향 태그 점수
   preferredTags.forEach((tag) => {
   const mappedTags = userTagMap[tag] || [tag];
@@ -175,7 +175,7 @@ function recommendPlaces(places, userPreference) {
         place.latitude,
         place.longitude
       );
-      return distance <= (userPreference.radius || 3000);
+      return true;
     })
     .map((place) => calculateScore(place, userPreference))
     .sort((a, b) => {
@@ -184,10 +184,13 @@ function recommendPlaces(places, userPreference) {
     })
     .filter(place => place.score > 0);
 
-  // 2. return 하기 전에 로그를 찍습니다.
-  //console.log("상위 점수들:", result.map(p => p.score));
-
-  // 3. 이제 반환합니다.
+  console.log(
+      place.name,
+      "거리:",
+      Math.round(distance),
+      "반경:",
+      userPreference.radius
+    );
   return result;
 }
 
