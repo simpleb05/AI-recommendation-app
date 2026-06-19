@@ -67,7 +67,6 @@ export default function MyProfileScreen({ onNavigate, userToken, userNickname, u
               <TouchableOpacity 
                 key={fav._id} 
                 style={styles.bookmarkCard} 
-                onPress={() => onNavigate('NewRecommendation')}
               >
                 <View style={styles.cardIconBox}>
     <Ionicons 
