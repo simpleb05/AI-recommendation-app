@@ -241,7 +241,7 @@ export default function HomeScreen({ onNavigate, userToken, userNickname }) {
           </TouchableOpacity>
           
           <TouchableOpacity style={styles.navigateNewButton} onPress={() => onNavigate('NewRecommendation')}>
-            <Text style={styles.navigateNewButtonText}>새로운 장소 추천받기</Text>
+            <Text style={styles.navigateNewButtonText}>지도 보기</Text>
           </TouchableOpacity>
         </View>
 
