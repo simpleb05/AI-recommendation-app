@@ -61,9 +61,9 @@ function calculateScore(place, userPreference) {
   const placeHashtags = convertTypesToHashtags(place.types);
   const preferredTags = userPreference.preferredTags || [];
 
-  console.log("사용자 태그:", preferredTags);
-  console.log("장소 태그:", placeHashtags);
-
+  console.log("원본 types:", place.types);
+  console.log("변환 태그:", placeHashtags);
+  
   // 1. 취향 태그 점수
   preferredTags.forEach((tag) => {
   const mappedTags = userTagMap[tag] || [tag];
@@ -185,7 +185,7 @@ function recommendPlaces(places, userPreference) {
     .filter(place => place.score > 0);
 
   // 2. return 하기 전에 로그를 찍습니다.
-  console.log("상위 점수들:", result.map(p => p.score));
+  //console.log("상위 점수들:", result.map(p => p.score));
 
   // 3. 이제 반환합니다.
   return result;
