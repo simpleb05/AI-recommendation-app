@@ -37,9 +37,12 @@ const getRecommendations = async (req, res) => {
       req.query.keyword ||
       (activityType && activityType !== "전체" ? activityType : null);
 
-    const keyword = activityKeyword
-      ? '${activityKeyword} 가볼만한곳'
-      : `주변 가볼만한곳 명소 카페`;
+    const keyword =
+    moodTags.length > 0
+      ? moodTags[0]
+      : activityKeyword
+      ? `${activityKeyword} 가볼만한곳`
+      : "주변 가볼만한곳";
 
     console.log("최종 검색 키워드:", keyword);
     console.log("activityKeyword:", activityKeyword);
