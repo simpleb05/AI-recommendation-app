@@ -71,7 +71,7 @@ export default function HomeScreen({ onNavigate, userToken, userNickname }) {
         });
         latitude = location.coords.latitude;
         longitude = location.coords.longitude;
-        console.log("현재 실시간 위치 정보 탐색 완료:", latitude, longitude);
+        //console.log("현재 실시간 위치 정보 탐색 완료:", latitude, longitude);
       } else {
         console.log("위치 권한이 거부되어 기본 좌표(창원대)로 추천 요청을 보냅니다.");
       }
@@ -89,7 +89,7 @@ export default function HomeScreen({ onNavigate, userToken, userNickname }) {
       );
       
       const data = await response.json();
-      console.log("추천 데이터 수신 완료:", JSON.stringify(data.recommendations, null, 2));
+      //console.log("추천 데이터 수신 완료:", JSON.stringify(data.recommendations, null, 2));
       
       if (data.success) {
         setRecommendationList(data.recommendations);

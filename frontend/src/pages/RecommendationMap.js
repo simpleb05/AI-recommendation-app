@@ -86,7 +86,7 @@ export default function RecommendationMapScreen({ onNavigate, userToken,selected
           });
           latitude = location.coords.latitude;
           longitude = location.coords.longitude;
-          console.log("지도 현재 위치 확보:", latitude, longitude);
+          //console.log("지도 현재 위치 확보:", latitude, longitude);
         } catch (e) {
           console.log("지도 화면 에뮬레이터 위치 획득 실패, 기본값 사용");
         }
@@ -154,11 +154,17 @@ export default function RecommendationMapScreen({ onNavigate, userToken,selected
     try {
       // radius 파라미터를 넘겨주어 백엔드가 범위에 맞게 찾아오게 합니다.
       const url = `https://ai-recommendation-app-19jj.onrender.com/api/recommend?latitude=${lat}&longitude=${lng}&radius=${radius}`;
+      console.log("요청 URL:", url);
       const response = await fetch(url, {
         headers: { Authorization: `Bearer ${userToken}` },
       });
       const data = await response.json();
 
+      console.log("맵 API 추천 개수:", data.recommendations?.length);
+      console.log(
+        "맵 추천 목록:",
+        data.recommendations?.map(p => p.name)
+      );
       if (data.success) {
         setPlaces(data.recommendations || []);
       }
@@ -211,6 +217,7 @@ useEffect(() => {
   useEffect(() => {
     if (places.length === 0 || !initialLocation) {
       setFilteredPlaces([]);
+
       return;
     }
 
@@ -219,6 +226,14 @@ useEffect(() => {
         latitude: parseFloat(place.latitude),
         longitude: parseFloat(place.longitude),
       });
+       console.log(
+    place.name,
+    "거리:",
+    Math.round(dist),
+    "반경:",
+    radius
+  );
+
       return dist <= radius;
     });
 
