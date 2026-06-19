@@ -5,6 +5,42 @@ const Feedback = require("../models/Feedback");
 const { fetchPlacesByKeyword } = require("../../recommendation/placeApi");
 const { recommendPlaces } = require("../../recommendation/recommendEngine");
 
+const searchKeywordMap = {
+  "조용한": "조용한 카페",
+  "활기찬": "놀거리",
+  "활동적인": "액티비티",
+  "감성 있는": "감성 카페",
+  "가성비": "맛집",
+
+  "이색적인": "이색 데이트",
+  "힐링": "공원",
+
+  "실내코스": "실내 데이트",
+
+  "익스트림": "액티비티",
+  "레트로": "전통시장",
+
+  "포토존 맛집": "포토존 카페",
+
+  "따뜻한": "카페",
+
+  "스릴 넘치는": "액티비티",
+
+  "자연과 함께": "공원",
+
+  "원데이 클래스": "공방",
+
+  "야간 코스": "야경 명소",
+
+  "보드게임": "보드게임 카페",
+
+  "맛집 탐방": "맛집",
+
+  "산책하기 좋은": "산책로",
+
+  "전시/회람": "박물관"
+};
+
 // AI 추천 (사용자 선호 + 피드백 + Google Places 기반)
 const getRecommendations = async (req, res) => {
   try {
@@ -38,17 +74,12 @@ const getRecommendations = async (req, res) => {
       (activityType && activityType !== "전체" ? activityType : null);
 
     const keyword =
-    moodTags.length > 0
-      ? moodTags[0]
-      : activityKeyword
-      ? `${activityKeyword} 가볼만한곳`
-      : "주변 가볼만한곳";
+      searchKeywordMap[moodTags[0]] ||
+      activityKeyword ||
+      "주변 가볼만한곳";
 
     console.log("최종 검색 키워드:", keyword);
     console.log("activityKeyword:", activityKeyword);
-    console.log("moodTags:", moodTags);
-    console.log("activityType:", activityType);
-    console.log("moodTag:", moodTag);
     
     const selectedMoodTag = moodTags[0] || moodTag;
 
