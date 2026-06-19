@@ -97,7 +97,7 @@ likedMoodTags.forEach((tag) => {
         mappedTag
       );
 
-      score += 20;
+      score += 200;
     }
   });
 });
