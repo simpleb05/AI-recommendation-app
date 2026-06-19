@@ -4,7 +4,7 @@ const Place = require("../models/Place");
 // 피드백 저장
 const addFeedback = async (req, res) => {
   try {
-    const { placeId, feedback } = req.body;
+    const { placeId, feedback, originalGoogleId } = req.body;
 
     // 이미 피드백한 장소인지 확인
     const existing = await Feedback.findOne({ userId: req.userId, placeId });
