@@ -97,7 +97,7 @@ const getRecommendations = async (req, res) => {
     const dislikedFeedbacks = await Feedback.find({
       userId: req.userId,
       feedback: "dislike",
-    });
+    }).populate("placeId");
 
     const dislikedPlaceIds = dislikedFeedbacks.map((f) => f.placeId);
 
@@ -210,6 +210,7 @@ const getRecommendations = async (req, res) => {
 
       likedCategories,
       likedMoodTags,
+      dislikedMoodTags,
 
       latitude,
       longitude,

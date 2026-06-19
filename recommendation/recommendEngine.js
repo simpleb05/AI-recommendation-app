@@ -56,8 +56,6 @@ function getPeopleTags(peopleCount) {
 }
 
 function calculateScore(place, userPreference) {
-  console.log("elikedMoodTags:", likedMoodTags);
-  console.log("edislikedMoodTags:", dislikedMoodTags);
   let score = 0;
 
   const placeHashtags = convertTypesToHashtags(place.types);
@@ -66,9 +64,8 @@ function calculateScore(place, userPreference) {
   const likedMoodTags = userPreference.likedMoodTags || [];
   const dislikedMoodTags = userPreference.dislikedMoodTags || [];
 
-  console.log("원본 types:", place.types);
-  console.log("변환 태그:", placeHashtags);
-
+  console.log("elikedMoodTags:", likedMoodTags);
+  console.log("edislikedMoodTags:", dislikedMoodTags);
   // 1. 취향 태그 점수
   preferredTags.forEach((tag) => {
   const mappedTags = userTagMap[tag] || [tag];
