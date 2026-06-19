@@ -6,8 +6,17 @@ const addFeedback = async (req, res) => {
   try {
     const { placeId, feedback, originalGoogleId } = req.body;
 
+    const place = await Place.findOne({
+        googlePlaceId: originalGoogleId
+      });
+
+      console.log("찾은 Place:", place?._id);
+
     // 이미 피드백한 장소인지 확인
-    const existing = await Feedback.findOne({ userId: req.userId, placeId });
+    const existing = await Feedback.findOne({
+      userId: req.userId,
+      placeId: place?._id,
+    });
     if (existing) {
       // 이미 있으면 업데이트
       existing.feedback = feedback;
@@ -15,7 +24,11 @@ const addFeedback = async (req, res) => {
       return res.json({ success: true, message: "피드백 업데이트 완료" });
     }
 
-    await Feedback.create({ userId: req.userId, placeId, feedback });
+    await Feedback.create({
+      userId: req.userId,
+      placeId: place?._id,
+      feedback,
+    });
     res.status(201).json({ success: true, message: "피드백 저장 완료" });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
