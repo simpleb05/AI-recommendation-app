@@ -194,7 +194,7 @@ function recommendPlaces(places, userPreference) {
     place.latitude,
     place.longitude
   );
-      return true;
+      return distance <= (userPreference.radius || 3000);
     })
     .map((place) => calculateScore(place, userPreference))
     .sort((a, b) => {
