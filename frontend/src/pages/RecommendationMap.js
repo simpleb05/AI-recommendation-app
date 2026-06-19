@@ -226,13 +226,13 @@ useEffect(() => {
         latitude: parseFloat(place.latitude),
         longitude: parseFloat(place.longitude),
       });
-       console.log(
-    place.name,
-    "거리:",
-    Math.round(dist),
-    "반경:",
-    radius
-  );
+  //      console.log(
+  //   place.name,
+  //   "거리:",
+  //   Math.round(dist),
+  //   "반경:",
+  //   radius
+  // );
 
       return dist <= radius;
     });
@@ -279,8 +279,20 @@ useEffect(() => {
   };
 
   const toggleReaction = async (place, feedbackValue) => {
-    const googlePlaceId = place.id || place.googlePlaceId;
+    console.log("선택 장소:", place);
+    console.log("place.id:", place.id);
+    console.log("googlePlaceId:", place.googlePlaceId);
+    const googlePlaceId =
+      place.googlePlaceId ||
+      place.id ||
+      place._id;
     const hexId = getHexId(googlePlaceId);
+
+    console.log({
+      placeId: hexId,
+      originalGoogleId: googlePlaceId,
+      feedback: feedbackValue
+    });
 
     try {
       const response = await fetch('https://ai-recommendation-app-19jj.onrender.com/api/feedback', {
@@ -483,7 +495,7 @@ useEffect(() => {
             <View style={styles.buttonFooter}>
               <TouchableOpacity
                 style={styles.reactionBtn}
-                onPress={() => toggleReaction({ id: selectedPlaceId }, 'like')}
+                onPress={() => toggleReaction(selectedPlace, 'like')}
               >
                 <Text style={{ fontSize: 18 }}>👍</Text>
                 <Text style={styles.btnLabel}>좋아요</Text>
@@ -491,7 +503,7 @@ useEffect(() => {
 
               <TouchableOpacity
                 style={styles.reactionBtn}
-                onPress={() => toggleReaction({ id: selectedPlaceId }, 'dislike')}
+                onPress={() => toggleReaction(selectedPlace, 'dislike')}
               >
                 <Text style={{ fontSize: 18 }}>👎</Text>
                 <Text style={styles.btnLabel}>별로예요</Text>
