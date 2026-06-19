@@ -58,9 +58,13 @@ function calculateScore(place, userPreference) {
   const placeHashtags = convertTypesToHashtags(place.types);
   const preferredTags = userPreference.preferredTags || [];
 
+  console.log("사용자 태그:", preferredTags);
+  console.log("장소 태그:", placeHashtags);
+
   // 1. 취향 태그 점수
   preferredTags.forEach((tag) => {
     if (placeHashtags.includes(tag)) {
+      console.log("태그 매칭 성공:", tag);
       score += 30;
     }
   });
