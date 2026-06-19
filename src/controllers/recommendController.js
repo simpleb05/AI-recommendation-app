@@ -107,6 +107,9 @@ const getRecommendations = async (req, res) => {
       feedback: "like",
     }).populate("placeId");
 
+    console.log("좋아요 개수:", likedFeedbacks.length);
+    console.log("좋아요 목록:", likedFeedbacks);
+
     const likedCategories = likedFeedbacks
       .map((f) => f.placeId?.category)
       .filter(Boolean);
