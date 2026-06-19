@@ -1,4 +1,7 @@
-const { convertTypesToHashtags } = require("../data/hashtagMap");
+const {
+  convertTypesToHashtags,
+  userTagMap,
+} = require("../data/hashtagMap");
 
 function getDistance(lat1, lon1, lat2, lon2) {
   const R = 6371e3;
@@ -63,11 +66,21 @@ function calculateScore(place, userPreference) {
 
   // 1. 취향 태그 점수
   preferredTags.forEach((tag) => {
-    if (placeHashtags.includes(tag)) {
-      console.log("태그 매칭 성공:", tag);
+  const mappedTags = userTagMap[tag] || [tag];
+
+  mappedTags.forEach((mappedTag) => {
+    if (placeHashtags.includes(mappedTag)) {
+      console.log(
+        "태그 매칭 성공:",
+        tag,
+        "→",
+        mappedTag
+      );
+
       score += 30;
     }
   });
+});
 
   // 2. 인원수 점수
   const peopleTags = getPeopleTags(userPreference.peopleCount || 1);
