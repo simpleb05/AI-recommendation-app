@@ -119,6 +119,9 @@ const getRecommendations = async (req, res) => {
     .map((f) => f.placeId?.moodTag)
     .filter(Boolean);
 
+    console.log("likedMoodTags:", likedMoodTags);
+  console.log("dislikedMoodTags:", dislikedMoodTags);
+
     // DB 추천 필터 생성
     const filter = {
       _id: { $nin: dislikedPlaceIds },
